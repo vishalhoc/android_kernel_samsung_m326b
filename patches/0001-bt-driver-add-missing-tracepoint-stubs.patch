@@ -1,0 +1,31 @@
+--- a/connectivity/bt/mt66xx/wmt/btmtk_dbg_tp_evt_if.h
++++ b/connectivity/bt/mt66xx/wmt/btmtk_dbg_tp_evt_if.h
+@@ -0,0 +1,17 @@
++#ifndef _BTMTK_DBG_TP_EVT_IF_H_
++#define _BTMTK_DBG_TP_EVT_IF_H_
++
++enum {
++	TP_ACT_POLL = 0,
++	TP_ACT_WR_IN,
++	TP_ACT_WR_OUT,
++	TP_ACT_RD_IN,
++	TP_ACT_RD_OUT,
++	TP_ACT_PWR_ON,
++	TP_ACT_PWR_OFF,
++};
++
++void bt_dbg_tp_evt(unsigned int pkt_action,
++		unsigned int parameter,
++		unsigned int data_len,
++		char *data);
++
++#endif
+--- a/connectivity/bt/mt66xx/wmt/btmtk_dbg_tp_evt_if.c
++++ b/connectivity/bt/mt66xx/wmt/btmtk_dbg_tp_evt_if.c
+@@ -0,0 +1,6 @@
++// SPDX-License-Identifier: GPL-2.0
++#include "btmtk_dbg_tp_evt_if.h"
++
++void bt_dbg_tp_evt(unsigned int pkt_action, unsigned int parameter, unsigned int data_len, char *data)
++{
++}

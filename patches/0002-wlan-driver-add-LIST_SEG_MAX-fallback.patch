@@ -1,0 +1,8 @@
+--- a/connectivity/wlan/core/gen4m/os/linux/include/gl_qa_agent.h
++++ b/connectivity/wlan/core/gen4m/os/linux/include/gl_qa_agent.h
+@@ -401,6 +401,9 @@
+ 
++#ifndef LIST_SEG_MAX
++#define LIST_SEG_MAX 100
++#endif
+ 		uint32_t u4TxStatus[LIST_SEG_MAX];
