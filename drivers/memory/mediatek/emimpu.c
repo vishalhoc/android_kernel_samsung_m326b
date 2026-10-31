@@ -283,6 +283,9 @@ static void clear_violation(
 	set_regs(emimpu_dev_ptr->clear_reg,
 		emimpu_dev_ptr->clear_reg_cnt, emi_cen_base);
 
+	set_regs(emimpu_dev_ptr->clear_md_reg,
+		emimpu_dev_ptr->clear_md_reg_cnt, emi_cen_base);
+
 	if (post_clear_cb)
 		post_clear_cb(emi_id);
 }

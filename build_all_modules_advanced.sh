@@ -12,7 +12,7 @@ export CLANG_TRIPLE=aarch64-linux-gnu-
 export CROSS_COMPILE="${GCC_OTH}/aarch64-linux-android-"
 export KCFLAGS="-w"
 
-KERNEL_DIR=/build/kernel/samsung/m326b
+KERNEL_DIR="$(pwd)"
 OUT_DIR=/build/kernel_out
 PLATFORM_BASE=/build/platform
 PLATFORM_MODS=/build/platform/vendor/mediatek/kernel_modules

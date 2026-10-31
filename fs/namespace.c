@@ -2094,7 +2094,7 @@ static int do_umount(struct mount *mnt, int flags)
 #if defined(CONFIG_KDP_NS) || defined(CONFIG_RUSTUH_KDP_NS)
 	if (mnt->mnt->mnt_flags & MNT_LOCKED)
 #else
-	if (mnt->mnt.mnt_flags & MNT_LOCKED)
+	if (path->mnt->mnt_flags & MNT_LOCKED)
 #endif
 		goto out;
 
@@ -2218,7 +2218,7 @@ SYSCALL_DEFINE2(umount, char __user *, name, int, flags)
 #if defined(CONFIG_KDP_NS) || defined(CONFIG_RUSTUH_KDP_NS)
 	if (mnt->mnt->mnt_flags & MNT_LOCKED)
 #else
-	if (mnt->mnt.mnt_flags & MNT_LOCKED) /* Check optimistically */
+	if (path->mnt->mnt_flags & MNT_LOCKED) /* Check optimistically */
 #endif
 		goto dput_and_out;
 	retval = -EPERM;
@@ -2247,6 +2247,36 @@ SYSCALL_DEFINE1(oldumount, char __user *, name)
 }
 
 #endif
+
+static int can_umount(const struct path *path, int flags)
+ {
+	 struct mount *mnt = real_mount(path->mnt);
+	 if (flags & ~(MNT_FORCE | MNT_DETACH | MNT_EXPIRE | UMOUNT_NOFOLLOW))
+		 return -EINVAL;
+	 if (!may_mount())
+		 return -EPERM;
+	 if (path->dentry != path->mnt->mnt_root)
+		 return -EINVAL;
+	 if (!check_mnt(mnt))
+		 return -EINVAL;
+	 if (path->mnt->mnt_flags & MNT_LOCKED)
+		 return -EINVAL;
+	 if (flags & MNT_FORCE && !capable(CAP_SYS_ADMIN))
+		 return -EPERM;
+	 return 0;
+ }
+
+int path_umount(struct path *path, int flags)
+ {
+	 struct mount *mnt = real_mount(path->mnt);
+	 int ret;
+	 ret = can_umount(path, flags);
+	 if (!ret)
+		 ret = do_umount(mnt, flags);
+	 dput(path->dentry);
+	 mntput_no_expire(mnt);
+	 return ret;
+ }
 
 static bool is_mnt_ns_file(struct dentry *dentry)
 {
