@@ -52,7 +52,7 @@ static int ip_ping_group_range_max[] = { GID_T_MAX, GID_T_MAX };
 static int one_day_secs = 24 * 3600;
 
 /* obsolete */
-static int sysctl_tcp_low_latency __read_mostly;
+static int sysctl_tcp_low_latency __read_mostly = 1;
 
 /* Update system visible IP port range */
 static void set_local_port_range(struct net *net, int range[2])

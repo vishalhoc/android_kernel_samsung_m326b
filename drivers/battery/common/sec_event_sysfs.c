@@ -22,6 +22,13 @@ static ssize_t sysfs_event_store_attrs(struct device *dev,
 				struct device_attribute *attr,
 				const char *buf, size_t count);
 
+#define SYSFS_EVENT_ATTR_RW_ALL(_name)					\
+{									\
+	.attr = {.name = #_name, .mode = 0666},	\
+	.show = sysfs_event_show_attrs,					\
+	.store = sysfs_event_store_attrs,					\
+}
+
 #define SYSFS_EVENT_ATTR(_name)						\
 {									\
 	.attr = {.name = #_name, .mode = 0664},	\
@@ -30,7 +37,7 @@ static ssize_t sysfs_event_store_attrs(struct device *dev,
 }
 
 static struct device_attribute sysfs_event_attrs[] = {
-	SYSFS_EVENT_ATTR(batt_slate_mode),
+	SYSFS_EVENT_ATTR_RW_ALL(batt_slate_mode),
 	SYSFS_EVENT_ATTR(batt_lp_charging),
 	SYSFS_EVENT_ATTR(siop_level),
 	SYSFS_EVENT_ATTR(siop_event),

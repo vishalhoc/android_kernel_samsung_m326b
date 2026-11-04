@@ -22,6 +22,13 @@ ssize_t sysfs_battery_store_attrs(struct device *dev,
 				const char *buf, size_t count);
 
 
+#define SYSFS_BATTERY_ATTR_RW_ALL(_name)					\
+{									\
+	.attr = {.name = #_name, .mode = 0666},	\
+	.show = sysfs_battery_show_attrs,					\
+	.store = sysfs_battery_store_attrs,					\
+}
+
 #define SYSFS_BATTERY_ATTR(_name)						\
 {									\
 	.attr = {.name = #_name, .mode = 0664},	\
@@ -82,7 +89,7 @@ static struct device_attribute sysfs_battery_attrs[] = {
 #endif
 	SYSFS_BATTERY_ATTR(usb_conf_test),
 	SYSFS_BATTERY_ATTR(voter_status),
-	SYSFS_BATTERY_ATTR(batt_full_capacity),
+	SYSFS_BATTERY_ATTR_RW_ALL(batt_full_capacity),
 };
 
 enum {
