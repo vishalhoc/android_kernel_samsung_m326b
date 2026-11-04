@@ -246,6 +246,13 @@ static void mtk_charger_set_buck(
 		pr_info("[DEBUG]%s: set buck on\n", __func__);
 		charger_dev_enable_powerpath(charger->chg_dev, true);
 	} else {
+		int vbus = mtk_charger_get_vbus_voltage(charger);
+		if (vbus < 4000) {
+			pr_info("%s: Cable disconnected (vbus=%d), keeping powerpath ENABLED on battery\n",
+				__func__, vbus);
+			charger_dev_enable_powerpath(charger->chg_dev, true);
+			return;
+		}
 		pr_info("[DEBUG]%s: set buck off\n", __func__);
 		mtk_charger_plug_in_out(charger, false);
 		charger_dev_enable_powerpath(charger->chg_dev, false);
@@ -883,15 +890,11 @@ static int mtk_charger_chg_set_property(struct power_supply *psy,
 			{
 				int vbus =
 					mtk_charger_get_vbus_voltage(charger);
-				pr_info("%s: VBUS: %d\n", __func__, vbus);
-				if (vbus < 4000) {
-					pr_info("%s: No Cable, power-off\n",
-						__func__);
-					/* BATFET tuns off with 18s delay */
-					charger_dev_enable_ship_mode(
-							charger->chg_dev, true);
-					mt_power_off();
-				}
+				pr_info("%s: VBUS: %d - Cable removed during bypass. Keeping device ON on battery\n",
+					__func__, vbus);
+				charger->f_mode = NO_MODE;
+				charger_dev_enable(charger->chg_dev, true);
+				charger_dev_enable_powerpath(charger->chg_dev, true);
 			}
 			break;
 		case POWER_SUPPLY_EXT_PROP_SHIPMODE_TEST:

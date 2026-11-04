@@ -4730,18 +4730,13 @@ static void sec_bat_cable_work(struct work_struct *work)
 					 SEC_BAT_CURRENT_EVENT_USB_STATE |
 					 SEC_BAT_CURRENT_EVENT_DC_ERR));
 
-	/* slate_mode needs to be clear manually since smart switch does not disable slate_mode sometimes */
+	/* slate_mode needs to be cleared when cable is removed so phone runs seamlessly on battery */
 	if (is_slate_mode(battery)) {
-		int voter_status = SEC_BAT_CHG_MODE_CHARGING;
-
-		if (get_sec_voter_status(battery->chgen_vote, VOTER_SMART_SLATE, &voter_status) < 0)
-			pr_err("%s: INVALID VOTER ID\n", __func__);
-		pr_info("%s: voter_status: %d\n", __func__, voter_status); // debug
-		if (voter_status == SEC_BAT_CHG_MODE_BUCK_OFF) {
-			sec_bat_set_current_event(battery, 0, SEC_BAT_CURRENT_EVENT_SLATE);
-			dev_info(battery->dev,
-					"%s: disable slate mode(smart switch) manually\n", __func__);
-		}
+		sec_bat_set_current_event(battery, 0, SEC_BAT_CURRENT_EVENT_SLATE);
+		sec_vote(battery->chgen_vote, VOTER_SLATE, false, 0);
+		sec_vote(battery->chgen_vote, VOTER_SMART_SLATE, false, 0);
+		dev_info(battery->dev,
+				"%s: cable disconnected - released slate bypass to keep device ON on battery\n", __func__);
 	}
 		battery->wc_cv_mode = false;
 		battery->is_sysovlo = false;
@@ -4754,7 +4749,6 @@ static void sec_bat_cable_work(struct work_struct *work)
 #endif
 		for (i = 0; i < VOTER_MAX; i++) {
 			if (i == VOTER_SIOP ||
-				i == VOTER_SLATE ||
 				i == VOTER_AGING_STEP ||
 				i == VOTER_WC_TX)
 			continue;
