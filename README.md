@@ -1,4 +1,4 @@
-# Official Samsung Galaxy M32 5G (SM-M326B) Kernel Source (v2.0 Advanced Router & Performance Engine)
+# Official Samsung Galaxy M32 5G (SM-M326B) Kernel Source (v3.4.0 Dedicated Router Super-Edition)
 
 [![Kernel](https://img.shields.io/badge/Kernel-4.14.186--27095505-green.svg)](https://kernel.org)
 [![Android](https://img.shields.io/badge/Android-13%20|%20One%20UI%205.1-blue.svg)](https://developer.android.com)
@@ -9,45 +9,54 @@
 [![IPC Namespace](https://img.shields.io/badge/IPC%20Namespaces-Active%20%26%20Verified-brightgreen.svg)](https://kernel.org)
 [![DLKM Modules](https://img.shields.io/badge/DLKM%20Bypass-CRC%20Mismatch%20Override-orange.svg)](https://github.com/vishalhoc/android_kernel_samsung_m326b)
 
-Official Linux kernel source code for the **Samsung Galaxy M32 5G (`SM-M326B`)**, based on Samsung Open Source release (`M326BDDSCCYD1` / SWA / Android 13 One UI 5.1, Binary C), with full **High-Speed Router Networking**, **Google BBR**, **CAKE & FQ Bufferbloat Mitigation**, **Linux Bridge & MACVLAN**, **BFQ Storage Scheduling**, **DLKM CRC Mismatch Bypass**, and **Linux IPC Namespace** support.
+Official Linux kernel source code for the **Samsung Galaxy M32 5G (`SM-M326B`)**, based on Samsung Open Source release (`M326BDDSCCYD1` / SWA / Android 13 One UI 5.1, Binary C), engineered specifically for **24/7 Dedicated Headless Networking, Routing, Bridging, and High-Throughput Tethering**.
 
-Tested and 100% verified on live hardware (`SM-M326B`): Cellular 5G NR_SA, Wi-Fi 5GHz (802.11ac 433Mbps), USB Gigabit Ethernet (`eth0`), Bluetooth 5.1, GPS/GNSS, and FM Radio operate concurrently with rock-solid stability.
+Tested and 100% verified on live hardware (`SM-M326B`): Cellular 5G NR_SA (Jio True5G), Dual-Stack IPv4/IPv6 Tethering (RNDIS USB & Wi-Fi Hotspot `swlan0`), USB Gigabit Ethernet (`eth0`), Bluetooth 5.1, GPS/GNSS, and FM Radio operate concurrently with rock-solid stability.
 
 ---
-
-## 📱 Device Specifications
 
 ## ⚡ What is New in Release v3.4.0 (24/7 Dedicated Router & Network Super-Edition)
 
 Designed specifically for **headless 24/7 dedicated high-performance routing, bridging, and tethering** on the Samsung Galaxy M32 5G (8 GB RAM, 24/7 charger-powered).
 
-1. **Ultra-Low Latency Zero-Sleep PM QoS (0µs Response)**:
-   - Sets \pm_qos_resume_latency_us = 0\ across all 8 CPU cores (Cortex-A76 Big Cores + Cortex-A55 Little Cores).
-   - CPU cores remain instantly responsive at sub-microsecond latency for real-time packet forwarding with zero wake-up jitter.
+### 1. Ultra-Low Latency Zero-Sleep PM QoS (0µs Response)
+- Sets `pm_qos_resume_latency_us = 0` across all 8 CPU cores (Cortex-A76 Big Cores + Cortex-A55 Little Cores).
+- CPU cores remain instantly responsive at sub-microsecond latency for real-time packet forwarding with zero wake-up jitter.
 
-2. **Wi-Fi CAM (Constantly Awake Mode) & High-Capacity Queues**:
-   - Hardware Wi-Fi power-saving completely disabled (\CFG_ENABLE_FULL_PM = 0\).
-   - Radio initialized in \ENUM_PSP_CONTINUOUS_ACTIVE\ for minimum latency.
-   - Wi-Fi TX packet queue expanded from 1024 to 4096 packets (\CFG_TX_MAX_PKT_NUM = 4096\).
+### 2. Wi-Fi CAM (Constantly Awake Mode) & High-Capacity Queues
+- Hardware Wi-Fi power-saving completely disabled (`CFG_ENABLE_FULL_PM = 0`).
+- Radio initialized in `ENUM_PSP_CONTINUOUS_ACTIVE` for minimum latency.
+- Wi-Fi TX packet queue expanded from 1024 to 4096 packets (`CFG_TX_MAX_PKT_NUM = 4096`).
 
-3. **Massive 32MB Network Socket Buffers (8GB RAM Dedicated Memory Pools)**:
-   - Socket buffer limits raised to 32MB (mem_max = 33554432\, \wmem_max = 33554432\).
-   - TCP auto-tuning dynamically scales up to 32MB windows (\	cp_rmem = 4096 87380 33554432\, \	cp_wmem = 4096 65536 33554432\).
-   - Network device input backlog expanded to 32,768 packets (etdev_max_backlog = 32768\).
-   - Maximum socket connections and SYN backlog scaled to 8,192 (\somaxconn = 8192\, \	cp_max_syn_backlog = 8192\).
+### 3. Massive 32MB Network Socket Buffers (8GB RAM Dedicated Memory Pools)
+- Socket buffer limits raised to 32MB (`rmem_max = 33554432`, `wmem_max = 33554432`).
+- TCP auto-tuning dynamically scales up to 32MB windows (`tcp_rmem = 4096 87380 33554432`, `tcp_wmem = 4096 65536 33554432`).
+- Network device input backlog expanded to 32,768 packets (`netdev_max_backlog = 32768`).
+- Maximum socket connections and SYN backlog scaled to 8,192 (`somaxconn = 8192`, `tcp_max_syn_backlog = 8192`).
 
-4. **Linux L2 Bridge Acceleration & EBTables Filtering Engine**:
-   - Built-in bridge acceleration with \CONFIG_BRIDGE_VLAN_FILTERING=y\ and ebtables extensions (\CONFIG_BRIDGE_EBT_ARPREPLY=y\, \DNAT=y\, \SNAT=y\, \REDIRECT=y\, \AMONG=y\, \LIMIT=y\).
-   - Kernel IP Virtual Server (IPVS) transport-layer load balancers compiled directly into the kernel (\CONFIG_IP_VS=y\ with Round Robin, Weighted RR, Least-Connection, and Weighted LC).
+### 4. Linux L2 Bridge Acceleration & EBTables Filtering Engine
+- Built-in bridge acceleration with `CONFIG_BRIDGE_VLAN_FILTERING=y` and ebtables extensions (`CONFIG_BRIDGE_EBT_ARPREPLY=y`, `DNAT=y`, `SNAT=y`, `REDIRECT=y`, `AMONG=y`, `LIMIT=y`).
+- Kernel IP Virtual Server (IPVS) transport-layer load balancers compiled directly into the kernel (`CONFIG_IP_VS=y` with Round Robin, Weighted RR, Least-Connection, and Weighted LC).
 
-5. **RFC 4861-Compliant Precision WAN TTL & Hop Limit Normalization**:
-   - Carrier hotspot restrictions bypassed with automatic \TTL 64\ / \HL 64\ normalization targeted strictly to outbound WAN traffic (mnet+\, \ccmni+\) on TCP and UDP protocols.
-   - ICMPv6 Router Solicitations and Neighbor Discovery strictly preserved at Hop Limit 255 per RFC 4861, ensuring seamless 5G SA SLAAC registration.
-   - Enforced unconditional Router Advertisement acceptance (\ccept_ra = 2\).
+### 5. RFC 4861-Compliant Precision WAN TTL & Hop Limit Normalization
+- Carrier hotspot restrictions bypassed with automatic `TTL 64` / `HL 64` normalization targeted strictly to outbound WAN traffic (`rmnet+`, `ccmni+`) on TCP and UDP protocols.
+- ICMPv6 Router Solicitations and Neighbor Discovery strictly preserved at Hop Limit 255 per RFC 4861, ensuring seamless 5G SA SLAAC registration.
+- Enforced unconditional Router Advertisement acceptance (`accept_ra = 2`).
 
-6. **Universal Cross-NIC Forwarding & Dual-Stack TCP MSS Clamping**:
-   - Unrestricted forwarding across Wi-Fi hotspot (\swlan0\), USB tethering (ndis0\), Ethernet (\eth0\), and bridge (\r0\).
-   - Automated PMTU clamping (\TCPMSS --clamp-mss-to-pmtu\) eliminating packet fragmentation and VPN connection drops.
+### 6. Universal Cross-NIC Forwarding & Dual-Stack TCP MSS Clamping
+- Unrestricted forwarding across Wi-Fi hotspot (`swlan0`), USB tethering (`rndis0`), Ethernet (`eth0`), and bridge (`br0`).
+- Automated PMTU clamping (`TCPMSS --clamp-mss-to-pmtu`) eliminating packet fragmentation and VPN connection drops.
+
+### 7. Complete Hardware & Kernel Restriction Removal
+- **CPU Big-Core Uncap**: Cortex-A76 Big Cores (CPU6 & CPU7) uncapped to full 2.0 GHz (`scaling_max_freq = 2000000`).
+- **MediaTek PPM Throttling Elimination**: `PPM_POLICY_PWR_THRO`, `PPM_POLICY_THERMAL`, and `PPM_POLICY_DLPT` disabled; `PPM_POLICY_SYS_BOOST` enabled.
+- **Dedicated 8GB RAM Cache Allocation**: `vm.swappiness = 10`, `vfs_cache_pressure = 20`, `dirty_ratio = 20`, eliminating all ZRAM swapping overhead and premature cache eviction.
+- **High-Concurrency Session Table**: `nf_conntrack_max = 2000000`, `tcp_fin_timeout = 15`.
+- **Hex 0xFF Multi-Core Packet Steering**: Receive Packet Steering (`rps_cpus = ff`) steering network interrupts evenly across all 8 cores.
+- **24/7 Hardware Battery Slate Mode**: Direct AC power supply bypass (`batt_slate_mode = 1`, `galaxy_acc.conf BYPASS=1`) running indefinitely on charger with zero battery cycling.
+- **Android Framework Restriction Removal**: Android Doze disabled (`dumpsys deviceidle disable`), Samsung GOS disabled (`pm disable com.samsung.android.game.gos`), Wi-Fi SoftAP inactivity timeout disabled (`wifi_ap_timeout = 0`).
+
+---
 
 ## ⚡ What is New in Release v3.3.0 (All 7 Advanced Innovations)
 
@@ -82,6 +91,7 @@ Designed specifically for **headless 24/7 dedicated high-performance routing, br
 
 ---
 
+## 📱 Device Specifications
 
 | Feature | Value |
 |---|---|
@@ -197,6 +207,18 @@ lsmod
 
 # Verify IPC namespaces
 unshare -i echo IPC_NAMESPACES_OK
+
+# Verify CPU6/7 2.0GHz uncap
+cat /sys/devices/system/cpu/cpu6/cpufreq/scaling_cur_freq
+# Expected: 2000000
+
+# Verify MediaTek PPM Throttling disabled
+cat /proc/ppm/policy_status | grep -E "PWR_THRO|THERMAL|SYS_BOOST"
+# Expected: PWR_THRO: disabled, THERMAL: disabled, SYS_BOOST: enabled
+
+# Verify Battery Slate Mode
+cat /sys/class/power_supply/battery/batt_slate_mode
+# Expected: 1
 ```
 
 ---
