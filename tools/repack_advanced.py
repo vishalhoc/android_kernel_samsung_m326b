@@ -99,9 +99,27 @@ on boot
     write /proc/sys/net/bridge/bridge-nf-call-ip6tables 0
     write /proc/sys/net/bridge/bridge-nf-call-arptables 0
 
-    # Ensure World-Writable Battery Bypass Node
+    # Ensure World-Writable Battery Bypass Node and Auto-Slate on Boot
     chmod 0666 /sys/class/power_supply/battery/batt_slate_mode
     chmod 0666 /sys/class/power_supply/battery/batt_full_capacity
+    write /sys/class/power_supply/battery/batt_slate_mode 1
+
+    # Low-Latency Headless Router Wake QoS (Screen-off latency fix)
+    write /sys/devices/system/cpu/cpu0/power/pm_qos_resume_latency_us 50
+    write /sys/devices/system/cpu/cpu1/power/pm_qos_resume_latency_us 50
+    write /sys/devices/system/cpu/cpu2/power/pm_qos_resume_latency_us 50
+    write /sys/devices/system/cpu/cpu3/power/pm_qos_resume_latency_us 50
+    write /sys/devices/system/cpu/cpu4/power/pm_qos_resume_latency_us 50
+    write /sys/devices/system/cpu/cpu5/power/pm_qos_resume_latency_us 50
+    write /sys/devices/system/cpu/cpu6/power/pm_qos_resume_latency_us 50
+    write /sys/devices/system/cpu/cpu7/power/pm_qos_resume_latency_us 50
+
+    # 24/7 F2FS Router Storage Endurance & Background GC Engine
+    write /sys/fs/f2fs/userdata/gc_idle 1
+    write /sys/fs/f2fs/userdata/gc_idle_interval 2
+    write /sys/fs/f2fs/userdata/gc_max_sleep_time 50000
+    write /sys/fs/f2fs/userdata/discard_granularity 16
+    write /sys/fs/f2fs/userdata/discard_idle_interval 50
 
 on property:sys.boot_completed=1
     setprop ro.debuggable 1

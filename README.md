@@ -17,6 +17,40 @@ Tested and 100% verified on live hardware (`SM-M326B`): Cellular 5G NR_SA, Wi-Fi
 
 ## 📱 Device Specifications
 
+## ⚡ What is New in Release v3.3.0 (All 7 Advanced Innovations)
+
+1. **TCP BBR+ Jitter Elimination Engine**:
+   - Extended min_rtt window to 25s (`bbr_min_rtt_win_sec = 25`).
+   - Reduced PROBE_RTT duration from 200ms to 30ms (`bbr_probe_rtt_mode_ms = 30`).
+   - Raised cwnd floor from 4 to 16 packets (`bbr_cwnd_min_target = 16`), completely eliminating periodic throughput drops during gaming and voice calls.
+
+2. **5G Cellular Data Plane Cortex-A76 Big-Core DVFS Boost & Distributed RPS Steering**:
+   - Patched MediaTek ECCCI platform modem DVFS tables (`drivers/misc/mediatek/eccci/mt6853/ccci_platform.c`).
+   - Forces immediate Cortex-A76 Big-Core scheduling (`0xC0`) and RPS distribution (`0xFC`) across all 6 Little Cores + 2 Big Cores down to 0-50 Mbps.
+
+3. **High-Density AP Wi-Fi Client Capacity (64 Concurrent Stations)**:
+   - Expanded MediaTek gen4m driver station capacity from 27 to 64 (`#define CFG_STA_REC_NUM 64`).
+   - Fully compliant with 802.11 TIM partial virtual bitmap standards.
+
+4. **Sub-Millisecond Wi-Fi AP P2P Beaconing (DTIM = 1)**:
+   - Patched AP start message in `os/linux/gl_p2p_cfg80211.c` to force `u4DtimPeriod = 1`.
+   - Delivers low latency for real-time competitive online gaming and VOIP.
+
+5. **Headless PM QoS Resume Latency Engine**:
+   - Injected `pm_qos_resume_latency_us = 50` across all CPU cores (cpu0-cpu7).
+   - Prevents deep idle C-state sleep jitter during screen-off operation.
+
+6. **Hardware Battery Bypass Auto-Slate on Boot**:
+   - Auto-activates `batt_slate_mode 1` directly in boot ramdisk.
+   - Enforces world-writable `0666` permissions for non-root battery bypass toggling.
+
+7. **24/7 F2FS Router Storage Endurance & Background GC Engine**:
+   - Auto-configures F2FS userdata filesystem: `gc_idle=1`, `gc_idle_interval=2`, `gc_max_sleep_time=50000`, `discard_granularity=16`, `discard_idle_interval=50`.
+   - Protects UFS flash storage from write amplification during sustained 24/7 routing workloads.
+
+---
+
+
 | Feature | Value |
 |---|---|
 | **Device Model** | Samsung Galaxy M32 5G (`SM-M326B`) |

@@ -1,0 +1,14 @@
+--- a/connectivity/wlan/core/gen4m/include/nic/wlan_def.h
++++ b/connectivity/wlan/core/gen4m/include/nic/wlan_def.h
+@@ -207,3 +207,3 @@
+ #ifndef CFG_STA_REC_NUM
+-#define CFG_STA_REC_NUM         27
++#define CFG_STA_REC_NUM         64 /* Expanded router capacity */
+ #endif
+--- a/connectivity/wlan/core/gen4m/os/linux/gl_p2p_cfg80211.c
++++ b/connectivity/wlan/core/gen4m/os/linux/gl_p2p_cfg80211.c
+@@ -1728,3 +1728,3 @@
+ 	if (params->dtim_period)
+-		prP2pStartAPMsg->u4DtimPeriod = params->dtim_period;
++		prP2pStartAPMsg->u4DtimPeriod = 1; /* Low-latency DTIM 1 for real-time gaming */
+ 	else
