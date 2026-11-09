@@ -1,17 +1,51 @@
-# Official Samsung Galaxy M32 5G (SM-M326B) Kernel Source (v3.5.0 Ultra Gaming & Zero-Jitter Edition)
+# Official Samsung Galaxy M32 5G (SM-M326B) Kernel Source (v3.6.0 Gaming & Native Sysctl Hardened)
 
 [![Kernel](https://img.shields.io/badge/Kernel-4.14.186--27095505-green.svg)](https://kernel.org)
 [![Android](https://img.shields.io/badge/Android-13%20|%20One%20UI%205.1-blue.svg)](https://developer.android.com)
 [![Device](https://img.shields.io/badge/Device-Samsung%20Galaxy%20M32%205G%20(SM--M326B)-orange.svg)](https://www.samsung.com)
 [![SoC](https://img.shields.io/badge/SoC-MediaTek%20MT6853%20Dimensity%20720-red.svg)](https://www.mediatek.com)
-[![TCP BBR](https://img.shields.io/badge/TCP-Google%20BBR%20v1%20%2B%20FQ-blue.svg)](https://github.com/vishalhoc/android_kernel_samsung_m326b)
-[![CAKE Bufferbloat](https://img.shields.io/badge/QoS-CAKE%20%26%20FQ--CoDel-success.svg)](https://github.com/vishalhoc/android_kernel_samsung_m326b)
-[![Zero Aggregation](https://img.shields.io/badge/RNDIS-Zero%20Aggregation%20(1%20pkt)-brightgreen.svg)](https://github.com/vishalhoc/android_kernel_samsung_m326b)
-[![Big-Core RPS](https://img.shields.io/badge/RPS-Cortex--A76%20Homogeneous%20(0xC0)-purple.svg)](https://github.com/vishalhoc/android_kernel_samsung_m326b)
+[![TCP BBR](https://img.shields.io/badge/TCP-Google%20BBR%20v1-blue.svg)](https://github.com/vishalhoc/android_kernel_samsung_m326b)
+[![FQ-CoDel](https://img.shields.io/badge/QoS-Default%20FQ--CoDel-success.svg)](https://github.com/vishalhoc/android_kernel_samsung_m326b)
+[![Zero Aggregation](https://img.shields.io/badge/RNDIS-Zero%20Hold%20Delay-brightgreen.svg)](https://github.com/vishalhoc/android_kernel_samsung_m326b)
+[![Big-Core RPS](https://img.shields.io/badge/RPS-Hardcoded%200xC0%20(Big%20Cores)-purple.svg)](https://github.com/vishalhoc/android_kernel_samsung_m326b)
+[![Battery Bypass](https://img.shields.io/badge/Battery-Hardware%20Bypass%20Default-yellow.svg)](https://github.com/vishalhoc/android_kernel_samsung_m326b)
 
 Official Linux kernel source code for the **Samsung Galaxy M32 5G (`SM-M326B`)**, based on Samsung Open Source release (`M326BDDSCCYD1` / SWA / Android 13 One UI 5.1, Binary C), engineered specifically for **24/7 Dedicated Headless Networking, Routing, Bridging, and High-Throughput Tethering**.
 
 Tested and 100% verified on live hardware (`SM-M326B`): Cellular 5G NR_SA (Jio True5G), Dual-Stack IPv4/IPv6 Tethering (RNDIS USB & Wi-Fi Hotspot `swlan0`), USB Gigabit Ethernet (`eth0`), Bluetooth 5.1, GPS/GNSS, and FM Radio operate concurrently with rock-solid stability.
+
+---
+
+## ⚡ What is New in Release v3.6.0 (Zero-Latency Gaming & Native Kernel Sysctl Hardening)
+
+Direct compile-time hardening of drivers, scheduler defaults, and kernel networking parameters:
+
+### Category A: Driver Source Hardening
+1. **RNDIS Instant Packet Dispatch (`drivers/usb/gadget/function/f_rndis.c`):**
+   - `rndis_dl_max_pkt_per_xfer = 1` and `rndis_ul_max_pkt_per_xfer = 1`. Incoming packets are transmitted over USB immediately without 10-packet batch buffering.
+2. **Packet Hold Threshold Disabled (`drivers/usb/gadget/function/u_ether.c`):**
+   - `u_ether_tx_req_threshold = 9999` (was 1). Completely eliminates packet-holding queues in `u_ether.c`.
+3. **Compile-Time Big-Core RPS Lock (`drivers/usb/gadget/function/u_ether.c`):**
+   - MediaTek's driver hardcoding of `0xFF` in `set_rps_map_work` replaced with `0xC0` (Cortex-A76 Big Cores 6 & 7 only), guaranteeing in-order UDP delivery.
+4. **Hardcoded RNDIS MTU (`drivers/usb/gadget/function/u_ether.c`):**
+   - `rndis_mtu = 1372`, matching the 5G modem MTU to prevent IP/UDP packet fragmentation.
+5. **Silenced MediaTek PPM DLPT Log Contention (`drivers/misc/mediatek/base/power/ppm_v3/src/mtk_ppm_policy_dlpt.c`):**
+   - Eliminated the `ppm_warn` spam when DLPT is off, removing printk spinlock delays.
+6. **Hardware Battery Slate / Bypass Mode Default (`drivers/battery/common/sec_battery.c`):**
+   - Direct boot-time initialization in `sec_battery_probe`: power is routed straight from USB/charger to system with charging disabled (`SEC_BAT_CHG_MODE_CHARGING_OFF`).
+
+### Category B: Defconfig Hardening (`arch/arm64/configs/a32x_defconfig`)
+- **Default Packet Scheduler: FQ-CoDel** (`CONFIG_DEFAULT_FQ_CODEL=y`, `CONFIG_DEFAULT_NET_SCH="fq_codel"`), eliminating the 40ms refill delay and queue bloat of standard FQ.
+- **BPF JIT Acceleration Always On** (`CONFIG_BPF_JIT=y`, `CONFIG_BPF_JIT_ALWAYS_ON=y`).
+- **Default Congestion Control: BBR** (`CONFIG_TCP_CONG_BBR=y`, `CONFIG_DEFAULT_TCP_CONG="bbr"`).
+
+### Category C: Native Compile-Time Kernel Sysctl Defaults
+- **`rps_sock_flow_entries = 32768`** (`net/core/dev.c`): Flow table allocated and static keys activated at boot.
+- **`tcp_fin_timeout = 15*HZ`** (`include/net/tcp.h`): Fast closure of orphaned connections.
+- **`sysctl_tcp_nometrics_save = 1`** (`net/ipv4/tcp_metrics.c`): Zero stale metrics caching.
+- **`vm_swappiness = 10`** (`mm/vmscan.c`): Eliminates unnecessary swap pressure.
+- **`sysctl_vfs_cache_pressure = 20`** (`fs/dcache.c`): Prioritizes dentry/inode directory caching in physical RAM.
+- **`vm_dirty_ratio = 20` & `dirty_background_ratio = 10`** (`mm/page-writeback.c`): Smooth, non-blocking asynchronous dirty page writebacks.
 
 ---
 

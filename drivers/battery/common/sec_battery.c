@@ -7935,6 +7935,10 @@ static int sec_battery_probe(struct platform_device *pdev)
 
 	sec_vote(battery->topoff_vote, VOTER_FULL_CHARGE, true, battery->pdata->full_check_current_1st);
 	sec_vote(battery->fv_vote, VOTER_FULL_CHARGE, true, battery->pdata->chg_float_voltage);
+		/* Boot-time Hardware Slate / Battery Bypass Mode Default */
+	sec_bat_set_current_event(battery, SEC_BAT_CURRENT_EVENT_SLATE, SEC_BAT_CURRENT_EVENT_SLATE);
+	sec_vote(battery->chgen_vote, VOTER_SLATE, true, SEC_BAT_CHG_MODE_CHARGING_OFF);
+	dev_info(battery->dev, "%s: Boot-time Hardware Slate Mode (Battery Bypass) enabled\n", __func__);
 	dev_info(battery->dev,
 		"%s: SEC Battery Driver Loaded\n", __func__);
 	return 0;

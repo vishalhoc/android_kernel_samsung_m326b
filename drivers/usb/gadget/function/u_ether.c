@@ -77,7 +77,7 @@ static unsigned int tx_wakeup_threshold = 13;
 module_param(tx_wakeup_threshold, uint, 0644);
 MODULE_PARM_DESC(tx_wakeup_threshold, "tx wakeup threshold value");
 
-static int u_ether_tx_req_threshold = 1;
+static int u_ether_tx_req_threshold = 9999;
 module_param(u_ether_tx_req_threshold, uint, 0644);
 MODULE_PARM_DESC(u_ether_tx_req_threshold, "u_ether_tx_req_threshold value");
 
@@ -85,7 +85,7 @@ MODULE_PARM_DESC(u_ether_tx_req_threshold, "u_ether_tx_req_threshold value");
 static unsigned int u_ether_rx_pending_thld = U_ETHER_RX_PENDING_TSHOLD;
 module_param(u_ether_rx_pending_thld, uint, 0644);
 
-static int rndis_mtu;
+static int rndis_mtu = 1372;
 module_param(rndis_mtu, uint, 0644);
 MODULE_PARM_DESC(rndis_mtu, "Set RNDIS MTU value");
 
@@ -597,8 +597,8 @@ static void set_rps_map_work(struct work_struct *work)
 	if (!dev->port_usb)
 		return;
 
-	pr_info("%s - set rps to 0xff\n", __func__);
-	set_rps_map(dev->net->_rx, 0xff);
+	pr_info("%s - set rps to 0xc0 (Big Cores only)\n", __func__);
+	set_rps_map(dev->net->_rx, 0xc0);
 }
 
 static void tx_complete(struct usb_ep *ep, struct usb_request *req)

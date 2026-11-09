@@ -70,6 +70,8 @@ inject_opt "CONFIG_TCP_CONG_DCTCP" "y"
 inject_opt "CONFIG_TCP_CONG_ILLINOIS" "y"
 inject_opt "CONFIG_NET_SCH_FQ" "y"
 inject_opt "CONFIG_NET_SCH_FQ_CODEL" "y"
+inject_opt "CONFIG_DEFAULT_FQ_CODEL" "y"
+inject_opt "CONFIG_DEFAULT_NET_SCH" '"fq_codel"'
 inject_opt "CONFIG_NET_SCH_CODEL" "y"
 inject_opt "CONFIG_NET_SCH_CAKE" "y"
 inject_opt "CONFIG_NET_SCH_TBF" "y"

@@ -9091,6 +9091,25 @@ static int __init net_dev_init(void)
 				       NULL, dev_cpu_dead);
 	WARN_ON(rc < 0);
 	rc = 0;
+
+#ifdef CONFIG_RPS
+	{
+		unsigned int size = 32768;
+		struct rps_sock_flow_table *sock_table;
+		sock_table = vmalloc(RPS_SOCK_FLOW_TABLE_SIZE(size));
+		if (sock_table) {
+			int idx;
+			rps_cpu_mask = roundup_pow_of_two(nr_cpu_ids) - 1;
+			sock_table->mask = size - 1;
+			for (idx = 0; idx < size; idx++)
+				sock_table->ents[idx] = RPS_NO_CPU;
+			rcu_assign_pointer(rps_sock_flow_table, sock_table);
+			static_key_slow_inc(&rps_needed);
+			static_key_slow_inc(&rfs_needed);
+			pr_info("RPS/RFS: default flow table initialized to %u entries\n", size);
+		}
+	}
+#endif
 out:
 	return rc;
 }

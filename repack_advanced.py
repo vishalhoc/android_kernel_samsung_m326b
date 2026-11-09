@@ -93,7 +93,7 @@ on boot
 
     # Network Queue Pacing & Congestion Control
     write /proc/sys/net/ipv4/tcp_congestion_control bbr
-    write /proc/sys/net/core/default_qdisc fq
+    write /proc/sys/net/core/default_qdisc fq_codel
     write /proc/sys/net/ipv4/ip_default_ttl 64
 
     # 8GB Dedicated Network & Internet Router Memory Pools (Massive Buffers)
