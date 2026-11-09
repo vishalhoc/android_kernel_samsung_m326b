@@ -94,6 +94,11 @@ on boot
     write /proc/sys/net/core/default_qdisc fq
     write /proc/sys/net/ipv4/ip_default_ttl 64
 
+    # Pure Layer-2 Switching & Bridge Acceleration (Bypass iptables drops)
+    write /proc/sys/net/bridge/bridge-nf-call-iptables 0
+    write /proc/sys/net/bridge/bridge-nf-call-ip6tables 0
+    write /proc/sys/net/bridge/bridge-nf-call-arptables 0
+
     # Ensure World-Writable Battery Bypass Node
     chmod 0666 /sys/class/power_supply/battery/batt_slate_mode
     chmod 0666 /sys/class/power_supply/battery/batt_full_capacity

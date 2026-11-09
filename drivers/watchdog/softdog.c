@@ -44,12 +44,12 @@ MODULE_PARM_DESC(nowayout,
 		"Watchdog cannot be stopped once started (default="
 				__MODULE_STRING(WATCHDOG_NOWAYOUT) ")");
 
-static int soft_noboot;
+static int soft_noboot = 1;
 module_param(soft_noboot, int, 0);
 MODULE_PARM_DESC(soft_noboot,
 	"Softdog action, set to 1 to ignore reboots, 0 to reboot (default=0)");
 
-static int soft_panic;
+static int soft_panic = 0;
 module_param(soft_panic, int, 0);
 MODULE_PARM_DESC(soft_panic,
 	"Softdog action, set to 1 to panic, 0 to reboot (default=0)");
@@ -62,26 +62,10 @@ static struct watchdog_device softdog_dev;
 static enum hrtimer_restart softdog_fire(struct hrtimer *timer)
 {
 	module_put(THIS_MODULE);
-	if (soft_noboot) {
-		pr_crit("Triggered - Reboot ignored\n");
-	} else if (soft_panic) {
-		pr_crit("Initiating panic\n");
-#ifdef CONFIG_SEC_DEBUG_SOFTDOG
-		secdbg_softdog_show_info();
-#endif
-#if IS_ENABLED(CONFIG_SEC_DEBUG_SOFTDOG_PWDT)
-		panic("Software Watchdog Timer expired %ds", softdog_dev.timeout);
-#else
-		panic("Software Watchdog Timer expired");
-#endif
-	} else {
-		pr_crit("Initiating system reboot\n");
-		emergency_restart();
-		pr_crit("Reboot didn't ?????\n");
-	}
-
+	pr_crit("softdog: Watchdog expired - neutralized for stability (no panic, no reboot)\n");
 	return HRTIMER_NORESTART;
 }
+
 
 static enum hrtimer_restart softdog_pretimeout(struct hrtimer *timer)
 {
