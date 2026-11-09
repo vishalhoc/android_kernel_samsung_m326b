@@ -183,6 +183,12 @@ $(info -- KernelSU-Next Manager signature hash: $(KSU_NEXT_MANAGER_HASH))
 # KSU: checks for available hook
 ## Logic flipped for HAVE_KSU_HOOK: 0 is success, 1 is failure
 HAVE_KSU_HOOK ?= 1
+ifneq ($(filter clean mrproper distclean, $(MAKECMDGOALS)),)
+HAVE_KSU_HOOK := 0
+endif
+ifneq ($(CONFIG_KSU), y)
+HAVE_KSU_HOOK := 0
+endif
 
 # Checks hooks state
 ifeq ($(CONFIG_KSU_KPROBES_HOOK), y)
