@@ -17,6 +17,38 @@ Tested and 100% verified on live hardware (`SM-M326B`): Cellular 5G NR_SA, Wi-Fi
 
 ## 📱 Device Specifications
 
+## ⚡ What is New in Release v3.4.0 (24/7 Dedicated Router & Network Super-Edition)
+
+Designed specifically for **headless 24/7 dedicated high-performance routing, bridging, and tethering** on the Samsung Galaxy M32 5G (8 GB RAM, 24/7 charger-powered).
+
+1. **Ultra-Low Latency Zero-Sleep PM QoS (0µs Response)**:
+   - Sets \pm_qos_resume_latency_us = 0\ across all 8 CPU cores (Cortex-A76 Big Cores + Cortex-A55 Little Cores).
+   - CPU cores remain instantly responsive at sub-microsecond latency for real-time packet forwarding with zero wake-up jitter.
+
+2. **Wi-Fi CAM (Constantly Awake Mode) & High-Capacity Queues**:
+   - Hardware Wi-Fi power-saving completely disabled (\CFG_ENABLE_FULL_PM = 0\).
+   - Radio initialized in \ENUM_PSP_CONTINUOUS_ACTIVE\ for minimum latency.
+   - Wi-Fi TX packet queue expanded from 1024 to 4096 packets (\CFG_TX_MAX_PKT_NUM = 4096\).
+
+3. **Massive 32MB Network Socket Buffers (8GB RAM Dedicated Memory Pools)**:
+   - Socket buffer limits raised to 32MB (mem_max = 33554432\, \wmem_max = 33554432\).
+   - TCP auto-tuning dynamically scales up to 32MB windows (\	cp_rmem = 4096 87380 33554432\, \	cp_wmem = 4096 65536 33554432\).
+   - Network device input backlog expanded to 32,768 packets (etdev_max_backlog = 32768\).
+   - Maximum socket connections and SYN backlog scaled to 8,192 (\somaxconn = 8192\, \	cp_max_syn_backlog = 8192\).
+
+4. **Linux L2 Bridge Acceleration & EBTables Filtering Engine**:
+   - Built-in bridge acceleration with \CONFIG_BRIDGE_VLAN_FILTERING=y\ and ebtables extensions (\CONFIG_BRIDGE_EBT_ARPREPLY=y\, \DNAT=y\, \SNAT=y\, \REDIRECT=y\, \AMONG=y\, \LIMIT=y\).
+   - Kernel IP Virtual Server (IPVS) transport-layer load balancers compiled directly into the kernel (\CONFIG_IP_VS=y\ with Round Robin, Weighted RR, Least-Connection, and Weighted LC).
+
+5. **RFC 4861-Compliant Precision WAN TTL & Hop Limit Normalization**:
+   - Carrier hotspot restrictions bypassed with automatic \TTL 64\ / \HL 64\ normalization targeted strictly to outbound WAN traffic (mnet+\, \ccmni+\) on TCP and UDP protocols.
+   - ICMPv6 Router Solicitations and Neighbor Discovery strictly preserved at Hop Limit 255 per RFC 4861, ensuring seamless 5G SA SLAAC registration.
+   - Enforced unconditional Router Advertisement acceptance (\ccept_ra = 2\).
+
+6. **Universal Cross-NIC Forwarding & Dual-Stack TCP MSS Clamping**:
+   - Unrestricted forwarding across Wi-Fi hotspot (\swlan0\), USB tethering (ndis0\), Ethernet (\eth0\), and bridge (\r0\).
+   - Automated PMTU clamping (\TCPMSS --clamp-mss-to-pmtu\) eliminating packet fragmentation and VPN connection drops.
+
 ## ⚡ What is New in Release v3.3.0 (All 7 Advanced Innovations)
 
 1. **TCP BBR+ Jitter Elimination Engine**:

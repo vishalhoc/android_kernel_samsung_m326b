@@ -29,7 +29,7 @@ export CROSS_COMPILE=${GCC_PATH}/aarch64-linux-android-
 export KCFLAGS="-w"
 export CONFIG_SECTION_MISMATCH_WARN_ONLY=y
 
-KERNEL_DIR="$(pwd)"
+KERNEL_DIR=/build/kernel/samsung/m326b
 OUT_DIR=/build/kernel_out
 OUTPUT_DIR=/build/output_advanced
 
