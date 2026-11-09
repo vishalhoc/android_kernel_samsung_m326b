@@ -97,18 +97,29 @@ on boot
     write /proc/sys/net/ipv4/ip_default_ttl 64
 
     # 8GB Dedicated Network & Internet Router Memory Pools (Massive Buffers)
-    write /proc/sys/net/core/rmem_max 33554432
-    write /proc/sys/net/core/wmem_max 33554432
+    write /proc/sys/net/core/rmem_max 67108864
+    write /proc/sys/net/core/wmem_max 67108864
     write /proc/sys/net/core/rmem_default 2097152
     write /proc/sys/net/core/wmem_default 2097152
     write /proc/sys/net/core/optmem_max 2097152
-    write /proc/sys/net/ipv4/tcp_rmem "4096 87380 33554432"
-    write /proc/sys/net/ipv4/tcp_wmem "4096 65536 33554432"
+    write /proc/sys/net/ipv4/tcp_rmem "4096 87380 67108864"
+    write /proc/sys/net/ipv4/tcp_wmem "4096 65536 67108864"
     write /proc/sys/net/core/netdev_max_backlog 32768
     write /proc/sys/net/core/somaxconn 8192
     write /proc/sys/net/ipv4/tcp_max_syn_backlog 8192
     write /proc/sys/net/ipv4/tcp_max_tw_buckets 2000000
-    write /proc/sys/net/netfilter/nf_conntrack_max 262144
+    write /proc/sys/net/netfilter/nf_conntrack_max 1048576
+    write /proc/sys/net/netfilter/nf_conntrack_tcp_timeout_established 7200
+    write /proc/sys/net/ipv4/tcp_fin_timeout 15
+    write /proc/sys/net/ipv4/tcp_no_metrics_save 1
+
+    # Dedicated 8GB RAM Pool Tuning (Zero ZRAM Swap Stalls)
+    write /proc/sys/vm/swappiness 10
+    write /proc/sys/vm/vfs_cache_pressure 20
+    write /proc/sys/vm/dirty_ratio 20
+    write /proc/sys/vm/dirty_background_ratio 10
+    write /proc/sys/vm/dirty_expire_centisecs 3000
+    write /proc/sys/vm/dirty_writeback_centisecs 500
 
     # Ultra-Low Latency & 0-RTT Connection Parameters
     write /proc/sys/net/ipv4/tcp_fastopen 3
@@ -181,6 +192,41 @@ on property:sys.boot_completed=1
     exec u:r:magisk:s0 root root -- /system/bin/iptables -t nat -A POSTROUTING -o rmnet+ -j MASQUERADE
     exec u:r:magisk:s0 root root -- /system/bin/iptables -t nat -A POSTROUTING -o v4-rmnet+ -j MASQUERADE
     exec u:r:magisk:s0 root root -- /system/bin/iptables -t nat -A POSTROUTING -o ccmni+ -j MASQUERADE
+
+    # Uncap CPU6 & CPU7 Cortex-A76 Big Cores to 2.0 GHz
+    chmod 0666 /sys/devices/system/cpu/cpu6/cpufreq/scaling_max_freq
+    chmod 0666 /sys/devices/system/cpu/cpu7/cpufreq/scaling_max_freq
+    write /sys/devices/system/cpu/cpu6/cpufreq/scaling_max_freq 2000000
+    write /sys/devices/system/cpu/cpu7/cpufreq/scaling_max_freq 2000000
+
+    # MediaTek PPM Throttling Policies Disabled & System Boost Enabled
+    write /proc/ppm/policy_status "3 0"
+    write /proc/ppm/policy_status "4 0"
+    write /proc/ppm/policy_status "5 0"
+    write /proc/ppm/policy_status "9 1"
+
+    # Distribute Receive Packet Steering across all 8 cores
+    write /sys/class/net/rmnet0/queues/rx-0/rps_cpus ff
+    write /sys/class/net/rmnet1/queues/rx-0/rps_cpus ff
+    write /sys/class/net/swlan0/queues/rx-0/rps_cpus ff
+    write /sys/class/net/rndis0/queues/rx-0/rps_cpus ff
+    write /sys/class/net/eth0/queues/rx-0/rps_cpus ff
+    write /sys/class/net/br0/queues/rx-0/rps_cpus ff
+
+    # Disable Android Headless Doze & Standby Restrictions
+    exec u:r:magisk:s0 root root -- /system/bin/dumpsys deviceidle disable
+    exec u:r:magisk:s0 root root -- /system/bin/settings put global soft_ap_timeout_enabled 0
+    exec u:r:magisk:s0 root root -- /system/bin/settings put system wifi_ap_timeout 0
+    exec u:r:magisk:s0 root root -- /system/bin/settings put secure wifi_ap_timeout 0
+    exec u:r:magisk:s0 root root -- /system/bin/settings put global app_standby_enabled 0
+    exec u:r:magisk:s0 root root -- /system/bin/settings put global low_power_back_data_off 0
+    exec u:r:magisk:s0 root root -- /system/bin/settings put global restricted_device_performance "0,0"
+    exec u:r:magisk:s0 root root -- /system/bin/settings put global cached_apps_freezer disabled
+    setprop persist.sys.cached_apps_freezer disabled
+
+    # Disable Samsung GOS Package
+    exec u:r:magisk:s0 root root -- /system/bin/pm disable com.samsung.android.game.gos
+    setprop dalvik.vm.dexopt.thermal-cutoff 0
 
     # Safety: Ensure Slate Mode remains 0666 for switch in app
     chmod 0666 /sys/class/power_supply/battery/batt_slate_mode
