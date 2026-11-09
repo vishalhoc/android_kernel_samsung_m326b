@@ -6,11 +6,13 @@ set -e
 # Kernel: 4.14.186-27095505 (MT6853 Dimensity 720)
 # Features:
 #   - Google BBR TCP Congestion Control (CONFIG_TCP_CONG_BBR=y, default=bbr)
-#   - FQ & FQ-CoDel Pacing / Bufferbloat Elimination (CONFIG_NET_SCH_FQ=y)
-#   - MACVLAN & IPVLAN Multi-WAN / Virtual Ethernet (CONFIG_MACVLAN=y)
-#   - BFQ I/O Scheduler & Default NOOP Flash Scheduler (CONFIG_IOSCHED_BFQ=y)
-#   - Linux IPC Namespaces (CONFIG_IPC_NS=y, CONFIG_SYSVIPC=y, CONFIG_POSIX_MQUEUE=y)
-#   - USB ConfigFS NCM/ECM/EEM Gadgets
+#   - DCTCP & Illinois TCP Congestion Controls
+#   - ARMv8 Hardware Crypto Extensions (NEON ChaCha20, Bit-sliced AES, CRC32 CE, SHA1/2 CE)
+#   - Transparent Proxying & Netfilter (TPROXY, SOCKET, SIP ALG, TBF Shaper)
+#   - Bridge VLAN Filtering & EBTables Acceleration
+#   - Kernel IP Virtual Server (IPVS) Layer-4 Load Balancing
+#   - USB RNDIS Instant Packet Dispatch (Zero Aggregation Delay)
+#   - Expanded USB Request Pool (DEFAULT_QLEN = 32)
 #   - Exact Stock Localversion: -27095505
 # ==============================================================================
 
@@ -43,40 +45,93 @@ make -C "${KERNEL_DIR}" O="${OUT_DIR}" mrproper
 make -C "${KERNEL_DIR}" O="${OUT_DIR}" a32x_defconfig
 
 echo "=== [2/4] Applying Advanced Feature Configurations ==="
+CONFIG_FILE="${OUT_DIR}/.config"
+
+inject_opt() {
+    local k="$1"
+    local v="$2"
+    if grep -q "^${k}=" "${CONFIG_FILE}" || grep -q "^# ${k} is not set" "${CONFIG_FILE}"; then
+        sed -i "s|^# ${k} is not set|${k}=${v}|" "${CONFIG_FILE}"
+        sed -i "s|^${k}=.*|${k}=${v}|" "${CONFIG_FILE}"
+    else
+        echo "${k}=${v}" >> "${CONFIG_FILE}"
+    fi
+}
+
 # 1. IPC Namespaces
-sed -i 's/# CONFIG_SYSVIPC is not set/CONFIG_SYSVIPC=y/' "${OUT_DIR}/.config"
-sed -i 's/# CONFIG_POSIX_MQUEUE is not set/CONFIG_POSIX_MQUEUE=y/' "${OUT_DIR}/.config"
-sed -i 's/# CONFIG_IPC_NS is not set/CONFIG_IPC_NS=y/' "${OUT_DIR}/.config"
+inject_opt "CONFIG_SYSVIPC" "y"
+inject_opt "CONFIG_POSIX_MQUEUE" "y"
+inject_opt "CONFIG_IPC_NS" "y"
 
-# 2. Google BBR and FQ Pacing
-sed -i 's/# CONFIG_TCP_CONG_BBR is not set/CONFIG_TCP_CONG_BBR=y/' "${OUT_DIR}/.config"
-sed -i 's/CONFIG_DEFAULT_TCP_CONG="bic"/CONFIG_DEFAULT_TCP_CONG="bbr"/' "${OUT_DIR}/.config"
-sed -i 's/# CONFIG_NET_SCH_FQ is not set/CONFIG_NET_SCH_FQ=y/' "${OUT_DIR}/.config"
-sed -i 's/# CONFIG_NET_SCH_FQ_CODEL is not set/CONFIG_NET_SCH_FQ_CODEL=y/' "${OUT_DIR}/.config"
-sed -i 's/# CONFIG_NET_SCH_CODEL is not set/CONFIG_NET_SCH_CODEL=y/' "${OUT_DIR}/.config"
+# 2. Google BBR, DCTCP, Illinois & FQ Pacing
+inject_opt "CONFIG_TCP_CONG_BBR" "y"
+inject_opt "CONFIG_DEFAULT_TCP_CONG" '"bbr"'
+inject_opt "CONFIG_TCP_CONG_DCTCP" "y"
+inject_opt "CONFIG_TCP_CONG_ILLINOIS" "y"
+inject_opt "CONFIG_NET_SCH_FQ" "y"
+inject_opt "CONFIG_NET_SCH_FQ_CODEL" "y"
+inject_opt "CONFIG_NET_SCH_CODEL" "y"
+inject_opt "CONFIG_NET_SCH_CAKE" "y"
+inject_opt "CONFIG_NET_SCH_TBF" "y"
+inject_opt "CONFIG_NET_SCH_HHF" "y"
+inject_opt "CONFIG_NET_SCH_PIE" "y"
 
-# 3. Virtual Interfaces (MACVLAN / IPVLAN)
-sed -i 's/# CONFIG_MACVLAN is not set/CONFIG_MACVLAN=y/' "${OUT_DIR}/.config"
-sed -i 's/# CONFIG_IPVLAN is not set/CONFIG_IPVLAN=y/' "${OUT_DIR}/.config"
+# 3. Virtual Interfaces & L2 Bridge Acceleration
+inject_opt "CONFIG_MACVLAN" "y"
+inject_opt "CONFIG_IPVLAN" "y"
+inject_opt "CONFIG_BRIDGE_VLAN_FILTERING" "y"
+inject_opt "CONFIG_BRIDGE_EBT_ARPREPLY" "y"
+inject_opt "CONFIG_BRIDGE_EBT_DNAT" "y"
+inject_opt "CONFIG_BRIDGE_EBT_SNAT" "y"
+inject_opt "CONFIG_BRIDGE_EBT_REDIRECT" "y"
+inject_opt "CONFIG_BRIDGE_EBT_AMONG" "y"
+inject_opt "CONFIG_BRIDGE_EBT_LIMIT" "y"
 
-# 4. Storage Schedulers (BFQ + NOOP Default)
-sed -i 's/# CONFIG_IOSCHED_BFQ is not set/CONFIG_IOSCHED_BFQ=y/' "${OUT_DIR}/.config"
-sed -i 's/CONFIG_DEFAULT_IOSCHED="cfq"/CONFIG_DEFAULT_IOSCHED="noop"/' "${OUT_DIR}/.config"
+# 4. Netfilter, Conntrack & Transparent Proxying
+inject_opt "CONFIG_NETFILTER_XT_TARGET_TPROXY" "y"
+inject_opt "CONFIG_NETFILTER_XT_MATCH_SOCKET" "y"
+inject_opt "CONFIG_NETFILTER_XT_MATCH_TCPMSS" "y"
+inject_opt "CONFIG_NF_CONNTRACK_TIMEOUT" "y"
+inject_opt "CONFIG_NF_CONNTRACK_ZONES" "y"
+inject_opt "CONFIG_NF_CONNTRACK_SIP" "y"
+inject_opt "CONFIG_IP_NF_TARGET_SYNPROXY" "y"
+inject_opt "CONFIG_IP6_NF_TARGET_SYNPROXY" "y"
 
-# 5. USB ConfigFS Gadgets
-sed -i 's/# CONFIG_USB_CONFIGFS_NCM is not set/CONFIG_USB_CONFIGFS_NCM=y/' "${OUT_DIR}/.config"
-sed -i 's/# CONFIG_USB_CONFIGFS_ECM is not set/CONFIG_USB_CONFIGFS_ECM=y/' "${OUT_DIR}/.config"
-sed -i 's/# CONFIG_USB_CONFIGFS_EEM is not set/CONFIG_USB_CONFIGFS_EEM=y/' "${OUT_DIR}/.config"
+# 5. Kernel IP Virtual Server (IPVS)
+inject_opt "CONFIG_IP_VS" "y"
+inject_opt "CONFIG_IP_VS_RR" "y"
+inject_opt "CONFIG_IP_VS_WRR" "y"
+inject_opt "CONFIG_IP_VS_LC" "y"
+inject_opt "CONFIG_IP_VS_WLC" "y"
+inject_opt "CONFIG_IP_VS_SH" "y"
+inject_opt "CONFIG_IP_VS_FTP" "y"
+inject_opt "CONFIG_IP_VS_NFCT" "y"
 
-# 6. Localversion align
-sed -i 's/CONFIG_LOCALVERSION=""/CONFIG_LOCALVERSION="-27095505"/' "${OUT_DIR}/.config"
-grep -q "CONFIG_LOCALVERSION=" "${OUT_DIR}/.config" || echo 'CONFIG_LOCALVERSION="-27095505"' >> "${OUT_DIR}/.config"
+# 6. ARM64 Hardware Cryptographic Acceleration (NEON & CE)
+inject_opt "CONFIG_CRYPTO_CHACHA20_NEON" "y"
+inject_opt "CONFIG_CRYPTO_CRC32_ARM64_CE" "y"
+inject_opt "CONFIG_CRYPTO_AES_ARM64_BS" "y"
+inject_opt "CONFIG_CRYPTO_AES_ARM64_CE_CCM" "y"
+inject_opt "CONFIG_CRYPTO_SHA1_ARM64_CE" "y"
+inject_opt "CONFIG_CRYPTO_SHA2_ARM64_CE" "y"
+
+# 7. Storage Schedulers (BFQ + NOOP Default)
+inject_opt "CONFIG_IOSCHED_BFQ" "y"
+inject_opt "CONFIG_DEFAULT_IOSCHED" '"noop"'
+
+# 8. USB ConfigFS Gadgets
+inject_opt "CONFIG_USB_CONFIGFS_NCM" "y"
+inject_opt "CONFIG_USB_CONFIGFS_ECM" "y"
+inject_opt "CONFIG_USB_CONFIGFS_EEM" "y"
+
+# 9. Localversion align
+inject_opt "CONFIG_LOCALVERSION" '"-27095505"'
 
 # Resolve dependencies cleanly
 make -C "${KERNEL_DIR}" O="${OUT_DIR}" olddefconfig
 
 echo "=== Verified Advanced Properties in .config ==="
-grep -E 'CONFIG_(TCP_CONG_BBR|DEFAULT_TCP_CONG|NET_SCH_FQ|NET_SCH_FQ_CODEL|MACVLAN|IPVLAN|IOSCHED_BFQ|DEFAULT_IOSCHED|IPC_NS|SYSVIPC|POSIX_MQUEUE|USB_CONFIGFS_NCM|LOCALVERSION)=' "${OUT_DIR}/.config"
+grep -E 'CONFIG_(TCP_CONG_BBR|TCP_CONG_DCTCP|CRYPTO_CHACHA20_NEON|CRYPTO_CRC32_ARM64_CE|NETFILTER_XT_TARGET_TPROXY|NET_SCH_TBF|BRIDGE_VLAN_FILTERING|IP_VS|LOCALVERSION)=' "${OUT_DIR}/.config"
 
 NPROC=$(nproc 2>/dev/null || echo 8)
 echo "=== [3/4] Compiling Kernel Image.gz and modules (-j${NPROC}) ==="

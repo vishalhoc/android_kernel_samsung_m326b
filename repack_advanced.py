@@ -205,13 +205,40 @@ on property:sys.boot_completed=1
     write /proc/ppm/policy_status "5 0"
     write /proc/ppm/policy_status "9 1"
 
-    # Distribute Receive Packet Steering across all 8 cores
-    write /sys/class/net/rmnet0/queues/rx-0/rps_cpus ff
-    write /sys/class/net/rmnet1/queues/rx-0/rps_cpus ff
-    write /sys/class/net/swlan0/queues/rx-0/rps_cpus ff
-    write /sys/class/net/rndis0/queues/rx-0/rps_cpus ff
-    write /sys/class/net/eth0/queues/rx-0/rps_cpus ff
-    write /sys/class/net/br0/queues/rx-0/rps_cpus ff
+    # USB RNDIS Zero-Aggregation Immediate Dispatch (Eliminate Gaming Packet Delay)
+    write /sys/module/usb_f_rndis/parameters/rndis_dl_max_pkt_per_xfer 1
+    write /sys/module/usb_f_rndis/parameters/rndis_ul_max_pkt_per_xfer 1
+
+    # Pin RPS & RFS to Cortex-A76 Big Cores (Cores 6 & 7 = mask c0)
+    write /proc/sys/net/core/rps_sock_flow_entries 32768
+    write /sys/class/net/rmnet0/queues/rx-0/rps_cpus c0
+    write /sys/class/net/rmnet0/queues/rx-0/rps_flow_cnt 4096
+    write /sys/class/net/rmnet1/queues/rx-0/rps_cpus c0
+    write /sys/class/net/rmnet1/queues/rx-0/rps_flow_cnt 4096
+    write /sys/class/net/swlan0/queues/rx-0/rps_cpus c0
+    write /sys/class/net/swlan0/queues/rx-0/rps_flow_cnt 4096
+    write /sys/class/net/rndis0/queues/rx-0/rps_cpus c0
+    write /sys/class/net/rndis0/queues/rx-0/rps_flow_cnt 4096
+    write /sys/class/net/eth0/queues/rx-0/rps_cpus c0
+    write /sys/class/net/eth0/queues/rx-0/rps_flow_cnt 4096
+    write /sys/class/net/br0/queues/rx-0/rps_cpus c0
+    write /sys/class/net/br0/queues/rx-0/rps_flow_cnt 4096
+
+    # 5G Cellular Modem DPMAIF & USB Hardware IRQ Steering to Cortex-A76 Big Cores
+    write /proc/irq/162/smp_affinity c0
+    write /proc/irq/164/smp_affinity c0
+    write /proc/irq/183/smp_affinity c0
+
+    # Wi-Fi CAM & Continuous Performance Mode
+    write /proc/net/wlan/setCAM 1
+    write /proc/net/wlan/autoPerfCfg ForceEnable:1
+
+    # Precision NAT & Softirq Sysctls
+    write /proc/sys/net/ipv4/tcp_timestamps 0
+    write /proc/sys/net/core/netdev_budget 600
+    write /proc/sys/net/core/netdev_budget_usecs 4000
+    write /proc/sys/net/netfilter/nf_conntrack_max 4194304
+    write /sys/module/nf_conntrack/parameters/hashsize 524288
 
     # Disable Android Headless Doze & Standby Restrictions
     exec u:r:magisk:s0 root root -- /system/bin/dumpsys deviceidle disable

@@ -71,7 +71,7 @@ USB_ETHERNET_MODULE_PARAMETERS();
 
 #define RX_EXTRA	20	/* bytes guarding against rx overflows */
 
-#define DEFAULT_QLEN	2	/* double buffering by default */
+#define DEFAULT_QLEN	32	/* Expanded request pool for high-throughput zero-drop USB */
 
 static unsigned int tx_wakeup_threshold = 13;
 module_param(tx_wakeup_threshold, uint, 0644);
