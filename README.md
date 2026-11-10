@@ -1,4 +1,4 @@
-# Official Samsung Galaxy M32 5G (SM-M326B) Kernel Source (v3.7.0 Smart Dual-Engine 350+ Mbps & Zero-Latency Gaming)
+# Official Samsung Galaxy M32 5G (SM-M326B) Kernel Source (v3.8.0 Hardware Swiss-Army Knife, Enterprise Server & NetHunter Core)
 
 [![Kernel](https://img.shields.io/badge/Kernel-4.14.186--27095505-green.svg)](https://kernel.org)
 [![Android](https://img.shields.io/badge/Android-13%20|%20One%20UI%205.1-blue.svg)](https://developer.android.com)
@@ -13,6 +13,43 @@
 Official Linux kernel source code for the **Samsung Galaxy M32 5G (`SM-M326B`)**, based on Samsung Open Source release (`M326BDDSCCYD1` / SWA / Android 13 One UI 5.1, Binary C), engineered specifically for **24/7 Dedicated Headless Networking, Routing, Bridging, and High-Throughput Tethering**.
 
 Tested and 100% verified on live hardware (`SM-M326B`): Cellular 5G NR_SA (Jio True5G), Dual-Stack IPv4/IPv6 Tethering (RNDIS USB & Wi-Fi Hotspot `swlan0`), USB Gigabit Ethernet (`eth0`), Bluetooth 5.1, GPS/GNSS, and FM Radio operate concurrently with rock-solid stability.
+
+---
+
+## 🛠️ What is New in Release v3.8.0 (Hardware Swiss-Army Knife, Enterprise Server & NetHunter Core)
+
+Transforms the Samsung Galaxy M32 5G into an autonomous hardware Swiss-Army knife, enterprise Linux server, and portable wireless auditing platform:
+
+### 1. 💽 DriveDroid UEFI/BIOS Bootable CD-ROM Emulation (`f_mass_storage.c`)
+- Implemented kernel-level `cdrom` LUN sysfs attribute hooks (`cdrom_show` / `cdrom_store`).
+- Enables booting physical PCs, laptops, and bare-metal servers directly from Windows 11/10 and Linux ISOs stored on the phone via USB cable without flash drives or Rufus.
+
+### 2. ⌨️ USB HID Hardware Keyboard & Mouse Keystroke Injection (`/dev/hidg0`, `/dev/hidg1`)
+- Enabled dynamic ConfigFS USB HID gadget support (`CONFIG_USB_CONFIGFS_F_HID=y`).
+- Emulates a physical USB keyboard and mouse for external PCs, servers, and Raspberry Pis in BIOS/UEFI setup screens with zero drivers required on host.
+
+### 3. 🎙️ USB Audio Class 2.0 Sound Card & Microphone Gadget (`CONFIG_USB_CONFIGFS_F_UAC2=y`)
+- Presents the phone over USB as a studio-grade 24-bit/96kHz external USB sound card and digital microphone to PCs, Macs, and PlayStation/Switch consoles.
+
+### 4. ⚡ USB Host Fast Charging Override (`sec_battery_dt.c`)
+- Uncapped standard PC USB 500mA input current limit to **1500mA (1.5A)**, ensuring the device remains fully powered and charged during intensive tethering and container operations.
+
+### 5. 🗄️ Native Network File Systems (CIFS/SMB 3.1.1 & NFS v3/v4/v4.2)
+- Added kernel-native `cifs` and `nfs` client support with AES-128 encryption.
+- Mount Windows shared folders (`\\192.168.1.100\Storage`) and Linux NFS shares directly into Android `/mnt/nas` at wire speed (1 Gbps) with zero userspace app overhead.
+
+### 6. 🌐 Realtek RTL8152/RTL8153 Gigabit USB-to-LAN & CDC Networking
+- Built-in plug-and-play driver support for Realtek RTL8152/RTL8153 Gigabit USB adapters and CDC Ethernet, enabling multi-NIC hardware routing.
+
+### 7. 📡 Wireless Pentesting & External USB Wi-Fi Drivers (NetHunter Core)
+- Built-in kernel support for `mac80211`, `cfg80211_wext`, and monitor mode / packet injection drivers:
+  - **Atheros AR9271 (`ath9k_htc`):** Alfa AWUS036NHA monitor mode and 802.11 raw packet injection.
+  - **Atheros AR9170 (`carl9170`):** 802.11a/b/g/n injection.
+  - **Realtek RTL8187 (`rtl8187`):** High-power injection adapter.
+  - **Ralink RT2800USB (`rt2800usb`):** RT3070 / RT5370 USB Wi-Fi dongles.
+
+### 8. 🐳 Advanced Docker & Kubernetes Container Networking
+- Enabled `CONFIG_GENEVE=y`, `CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y`, and `CONFIG_IP_NF_TARGET_REDIRECT=y` for seamless Docker port mapping and overlay networking.
 
 ---
 

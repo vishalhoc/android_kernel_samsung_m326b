@@ -121,10 +121,61 @@ inject_opt "CONFIG_CRYPTO_SHA2_ARM64_CE" "y"
 inject_opt "CONFIG_IOSCHED_BFQ" "y"
 inject_opt "CONFIG_DEFAULT_IOSCHED" '"noop"'
 
-# 8. USB ConfigFS Gadgets
+# 8. USB ConfigFS Gadgets & Audio Class 2.0
 inject_opt "CONFIG_USB_CONFIGFS_NCM" "y"
 inject_opt "CONFIG_USB_CONFIGFS_ECM" "y"
 inject_opt "CONFIG_USB_CONFIGFS_EEM" "y"
+inject_opt "CONFIG_USB_CONFIGFS_F_UAC2" "y"
+inject_opt "CONFIG_USB_CONFIGFS_F_HID" "y"
+
+# 10. Native Network File Systems (CIFS/SMB 3.1.1 & NFS v3/v4/v4.2 Client)
+inject_opt "CONFIG_NETWORK_FILESYSTEMS" "y"
+inject_opt "CONFIG_CIFS" "y"
+inject_opt "CONFIG_CIFS_STATS" "y"
+inject_opt "CONFIG_CIFS_STATS2" "y"
+inject_opt "CONFIG_CIFS_WEAK_PW_HASH" "y"
+inject_opt "CONFIG_CIFS_UPCALL" "y"
+inject_opt "CONFIG_CIFS_XATTR" "y"
+inject_opt "CONFIG_CIFS_POSIX" "y"
+inject_opt "CONFIG_CIFS_ACL" "y"
+inject_opt "CONFIG_CIFS_DFS_UPCALL" "y"
+inject_opt "CONFIG_CIFS_SMB311" "y"
+inject_opt "CONFIG_NFS_FS" "y"
+inject_opt "CONFIG_NFS_V3" "y"
+inject_opt "CONFIG_NFS_V4" "y"
+inject_opt "CONFIG_NFS_V4_1" "y"
+inject_opt "CONFIG_NFS_V4_2" "y"
+
+# 11. Gigabit USB Ethernet & CDC Networking
+inject_opt "CONFIG_USB_USBNET" "y"
+inject_opt "CONFIG_USB_RTL8152" "y"
+inject_opt "CONFIG_USB_NET_CDCETHER" "y"
+inject_opt "CONFIG_USB_NET_AX88179_178A" "y"
+
+# 12. Wireless Auditing & External Wi-Fi Drivers (NetHunter Core)
+inject_opt "CONFIG_CFG80211" "y"
+inject_opt "CONFIG_CFG80211_WEXT" "y"
+inject_opt "CONFIG_MAC80211" "y"
+inject_opt "CONFIG_MAC80211_RC_MINSTREL" "y"
+inject_opt "CONFIG_MAC80211_RC_MINSTREL_HT" "y"
+inject_opt "CONFIG_WLAN_VENDOR_ATH" "y"
+inject_opt "CONFIG_ATH9K_HTC" "y"
+inject_opt "CONFIG_CARL9170" "y"
+inject_opt "CONFIG_WLAN_VENDOR_REALTEK" "y"
+inject_opt "CONFIG_RTL8187" "y"
+inject_opt "CONFIG_WLAN_VENDOR_RALINK" "y"
+inject_opt "CONFIG_RT2X00" "y"
+inject_opt "CONFIG_RT2800USB" "y"
+inject_opt "CONFIG_RT2800USB_RT33XX" "y"
+inject_opt "CONFIG_RT2800USB_RT35XX" "y"
+inject_opt "CONFIG_RT2800USB_RT53XX" "y"
+inject_opt "CONFIG_RT2X00_LIB_USB" "y"
+
+# 13. Advanced Container Networking & Docker Port Mapping
+inject_opt "CONFIG_GENEVE" "y"
+inject_opt "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE" "y"
+inject_opt "CONFIG_IP_NF_TARGET_REDIRECT" "y"
+
 
 # 9. Localversion align
 inject_opt "CONFIG_LOCALVERSION" '"-27095505"'

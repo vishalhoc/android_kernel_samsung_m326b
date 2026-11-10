@@ -202,6 +202,11 @@ int sec_bat_parse_dt(struct device *dev,
 
 	pdata->default_usb_input_current = pdata->charging_current[SEC_BATTERY_CABLE_USB].input_current_limit;
 	pdata->default_usb_charging_current = pdata->charging_current[SEC_BATTERY_CABLE_USB].fast_charging_current;
+	/* Galaxy Super-Kernel: Fast Charge Override - uncap PC USB 500mA limit to 1500mA */
+	if (pdata->default_usb_input_current < 1500)
+		pdata->default_usb_input_current = 1500;
+	if (pdata->default_usb_charging_current < 1500)
+		pdata->default_usb_charging_current = 1500;
 #ifdef CONFIG_SEC_FACTORY
 	pdata->default_charging_current = 1500;
 	pdata->charging_current[SEC_BATTERY_CABLE_TA].fast_charging_current = 1500;
