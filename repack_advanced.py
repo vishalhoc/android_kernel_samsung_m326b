@@ -39,6 +39,7 @@ ro.debuggable=1
 ro.adb.secure=0
 ro.secure=0
 service.adb.tcp.port=5555
+persist.adb.tcp.port=5555
 persist.service.adb.enable=1
 persist.service.debuggable=1
 """
@@ -49,17 +50,22 @@ init_rc = """on early-init
     setprop ro.debuggable 1
     setprop ro.adb.secure 0
     setprop ro.secure 0
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
 
 on init
     setprop ro.debuggable 1
     setprop ro.adb.secure 0
     setprop persist.sys.usb.config mtp,adb
     setprop sys.usb.config mtp,adb
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
 
 on post-fs-data
     setprop persist.sys.usb.config mtp,adb
     setprop persist.service.adb.enable 1
     setprop persist.service.debuggable 1
+    setprop persist.adb.tcp.port 5555
     setprop service.adb.tcp.port 5555
     start adbd
 
@@ -78,8 +84,91 @@ on post-fs-data
 on boot
     setprop persist.sys.usb.config mtp,adb
     setprop sys.usb.config mtp,adb
+    setprop persist.adb.tcp.port 5555
     setprop service.adb.tcp.port 5555
     start adbd
+
+# ==============================================================================
+# Seamless Multi-Interface ADB Auto-Start Engine (Hotspot, Ethernet, Wi-Fi & USB)
+# ==============================================================================
+
+# 1. Wi-Fi SoftAP / Hotspot Auto-Start Triggers
+on property:sys.wifi.tethering=1
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+on property:wifi.tethering=1
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+on property:net.swlan0.state=up
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+on property:init.svc.hostapd=running
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+# 2. Gigabit USB Ethernet (RTL8152/8153, AX88179, CDC) Auto-Start Triggers
+on property:net.eth0.state=up
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+on property:net.eth1.state=up
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+on property:dhcp.eth0.result=ok
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+on property:dhcp.eth1.result=ok
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+# 3. Wi-Fi Client (WLAN STA) Auto-Start Triggers
+on property:wlan.driver.status=ok
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+on property:net.wlan0.state=up
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+# 4. USB Disconnect & Host Mode Shield (Preserve ADB when USB cable is unplugged)
+on property:sys.usb.config=none
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+on property:sys.usb.state=none
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+# 5. Continuous Auto-Revive Trigger (Never allow adbd to stay stopped)
+on property:init.svc.adbd=stopped
+    setprop persist.adb.tcp.port 5555
+    setprop service.adb.tcp.port 5555
+    start adbd
+
+# 6. Service definition for 24/7 ADB Network Watchdog
+service adb_watchdog /system/bin/sh /overlay.d/adb_watchdog.sh
+    class main
+    user root
+    group root
+    seclabel u:r:magisk:s0
+    oneshot
 
     # Linux Container & IPC Auto-Mount Subsystem
     mkdir /dev/shm 0777 root root
@@ -160,8 +249,18 @@ on property:sys.boot_completed=1
     setprop ro.adb.secure 0
     setprop persist.sys.usb.config mtp,adb
     setprop sys.usb.config mtp,adb
+    setprop persist.adb.tcp.port 5555
     setprop service.adb.tcp.port 5555
     restart adbd
+    start adb_watchdog
+
+    # Firewall Allow Rules for ADB TCP Port 5555 Across All Interfaces
+    exec u:r:magisk:s0 root root -- /system/bin/iptables -I INPUT -p tcp --dport 5555 -j ACCEPT
+    exec u:r:magisk:s0 root root -- /system/bin/ip6tables -I INPUT -p tcp --dport 5555 -j ACCEPT
+    exec u:r:magisk:s0 root root -- /system/bin/iptables -I INPUT -i swlan+ -p tcp --dport 5555 -j ACCEPT
+    exec u:r:magisk:s0 root root -- /system/bin/iptables -I INPUT -i eth+ -p tcp --dport 5555 -j ACCEPT
+    exec u:r:magisk:s0 root root -- /system/bin/iptables -I INPUT -i wlan+ -p tcp --dport 5555 -j ACCEPT
+    exec u:r:magisk:s0 root root -- /system/bin/iptables -I INPUT -i rndis+ -p tcp --dport 5555 -j ACCEPT
 
     # Targeted TCP MSS Clamping to PMTU on WAN interfaces
     exec u:r:magisk:s0 root root -- /system/bin/iptables -t mangle -A POSTROUTING -o rmnet+ -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
@@ -291,7 +390,34 @@ with open("init.adb.rc", "w") as f:
 print("=== 4. Updating ramdisk.cpio ===")
 subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "add 0644 system/etc/ramdisk/build.prop build.prop.mod"], check=True)
 subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "mkdir 0755 overlay.d"], check=False)
+
+watchdog_sh = """#!/system/bin/sh
+# 24/7 Multi-Interface ADB Auto-Start Watchdog for Galaxy M32 5G (SM-M326B)
+while true; do
+    PORT=$(getprop service.adb.tcp.port)
+    if [ "$PORT" != "5555" ]; then
+        setprop persist.adb.tcp.port 5555
+        setprop service.adb.tcp.port 5555
+    fi
+    if ! grep -q ':15B3 ' /proc/net/tcp 2>/dev/null && ! grep -q ':15B3 ' /proc/net/tcp6 2>/dev/null; then
+        setprop persist.adb.tcp.port 5555
+        setprop service.adb.tcp.port 5555
+        start adbd 2>/dev/null
+    fi
+    if ! iptables -C INPUT -p tcp --dport 5555 -j ACCEPT 2>/dev/null; then
+        iptables -I INPUT -p tcp --dport 5555 -j ACCEPT 2>/dev/null
+    fi
+    if ! ip6tables -C INPUT -p tcp --dport 5555 -j ACCEPT 2>/dev/null; then
+        ip6tables -I INPUT -p tcp --dport 5555 -j ACCEPT 2>/dev/null
+    fi
+    sleep 3
+done
+"""
+with open("adb_watchdog.sh", "w") as f:
+    f.write(watchdog_sh)
+
 subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "add 0644 overlay.d/init.adb.rc init.adb.rc"], check=True)
+subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "add 0755 overlay.d/adb_watchdog.sh adb_watchdog.sh"], check=True)
 subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "ls -r overlay.d"], check=True)
 
 print("=== 5. Repacking boot image ===")

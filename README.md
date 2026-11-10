@@ -1,4 +1,4 @@
-# Official Samsung Galaxy M32 5G (SM-M326B) Kernel Source (v3.8.0 Hardware Swiss-Army Knife, Enterprise Server & NetHunter Core)
+# Official Samsung Galaxy M32 5G (SM-M326B) Kernel Source (v3.9.0 Multi-Interface ADB Auto-Start & Zero-Sleep Gigabit Core)
 
 [![Kernel](https://img.shields.io/badge/Kernel-4.14.186--27095505-green.svg)](https://kernel.org)
 [![Android](https://img.shields.io/badge/Android-13%20|%20One%20UI%205.1-blue.svg)](https://developer.android.com)
@@ -13,6 +13,31 @@
 Official Linux kernel source code for the **Samsung Galaxy M32 5G (`SM-M326B`)**, based on Samsung Open Source release (`M326BDDSCCYD1` / SWA / Android 13 One UI 5.1, Binary C), engineered specifically for **24/7 Dedicated Headless Networking, Routing, Bridging, and High-Throughput Tethering**.
 
 Tested and 100% verified on live hardware (`SM-M326B`): Cellular 5G NR_SA (Jio True5G), Dual-Stack IPv4/IPv6 Tethering (RNDIS USB & Wi-Fi Hotspot `swlan0`), USB Gigabit Ethernet (`eth0`), Bluetooth 5.1, GPS/GNSS, and FM Radio operate concurrently with rock-solid stability.
+
+---
+
+## 🚀 What is New in Release v3.9.0 (Multi-Interface ADB Auto-Start & Zero-Sleep Gigabit Core)
+
+Solves headless ADB connectivity across external interfaces by automatically launching and maintaining ADB over TCP/IP (`0.0.0.0:5555`) across Wi-Fi Hotspot, Gigabit USB Ethernet, Wi-Fi Client, and USB Gadget modes simultaneously:
+
+### 1. 📡 Wi-Fi Hotspot (SoftAP `swlan0`) ADB Auto-Start
+- Event-driven init triggers (`sys.wifi.tethering=1`, `wifi.tethering=1`, `net.swlan0.state=up`, `init.svc.hostapd=running`) immediately bind `adbd` to TCP port 5555.
+- Allows connecting directly from any laptop or device connected to the phone's Hotspot (`adb connect 192.168.230.111:5555` or gateway IP) without requiring a physical USB connection to a PC.
+
+### 2. 🌐 Gigabit USB Ethernet (`eth0`, `eth1`) ADB Auto-Start & Host Mode Shield
+- Eliminates the Android USB host mode trap: Stock Android forces `sys.usb.config=none` when an Ethernet adapter is plugged into the USB-C port, which normally kills `adbd`.
+- Inverted init triggers (`on property:net.eth0.state=up`, `on property:sys.usb.config=none`, `on property:init.svc.adbd=stopped`) keep `adbd` continuously alive in TCP mode when USB is in host mode or disconnected.
+- Allows plug-and-play ADB debugging directly over physical Ethernet cables (`adb connect <ethernet-ip>:5555`).
+
+### 3. ⚡ Zero-Sleep USB Ethernet Drivers (`.supports_autosuspend = 0`)
+- Patched Realtek RTL8152/RTL8153 Gigabit USB Ethernet driver (`drivers/net/usb/r8152.c`) and CDC Ethernet driver (`drivers/net/usb/cdc_ether.c`) to disable USB runtime autosuspend.
+- Prevents the Ethernet PHY from entering sleep during idle periods, guaranteeing instant sub-millisecond connection response for incoming ADB connections and network requests.
+
+### 4. 🛡️ 24/7 Autonomous ADB Network Watchdog & Universal Firewall Whitelist
+- Built-in init supervisor daemon (`/overlay.d/adb_watchdog.sh`) scans `/proc/net/tcp` and `/proc/net/tcp6` for port `:15B3` (5555) with near-zero CPU overhead.
+- If Samsung system server or power management ever halts `adbd`, the watchdog restores `persist.adb.tcp.port 5555` and revives `adbd` within 3 seconds.
+- Injects explicit firewall allow rules (`iptables -I INPUT -p tcp --dport 5555 -j ACCEPT`) across `swlan+`, `eth+`, `wlan+`, and `rndis+` interfaces, bypassing Knox/Netd firewall drops.
+- Retains `ro.adb.secure=0` and `ro.debuggable=1` so connections over Hotspot and Ethernet connect immediately without manual screen authentication.
 
 ---
 

@@ -949,7 +949,7 @@ static struct usb_driver cdc_driver = {
 	.suspend =	usbnet_suspend,
 	.resume =	usbnet_resume,
 	.reset_resume =	usbnet_resume,
-	.supports_autosuspend = 1,
+	.supports_autosuspend = 0,
 	.disable_hub_initiated_lpm = 1,
 };
 
