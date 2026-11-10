@@ -163,12 +163,14 @@ on property:init.svc.adbd=stopped
     start adbd
 
 # 6. Service definition for 24/7 ADB Network Watchdog
-service adb_watchdog /system/bin/sh /overlay.d/adb_watchdog.sh
+service adb_watchdog /system/bin/sh /debug_ramdisk/adb_watchdog.sh
     disabled
     user root
     group root
     seclabel u:r:magisk:s0
-    oneshot
+
+on property:sys.boot_completed=1
+    start adb_watchdog
 
     # Linux Container & IPC Auto-Mount Subsystem
     mkdir /dev/shm 0777 root root
@@ -418,6 +420,7 @@ with open("adb_watchdog.sh", "w") as f:
 
 subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "add 0644 overlay.d/init.adb.rc init.adb.rc"], check=True)
 subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "add 0755 overlay.d/adb_watchdog.sh adb_watchdog.sh"], check=True)
+subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "add 0755 overlay.d/sbin/adb_watchdog.sh adb_watchdog.sh"], check=True)
 subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "ls -r overlay.d"], check=True)
 
 print("=== 5. Repacking boot image ===")
