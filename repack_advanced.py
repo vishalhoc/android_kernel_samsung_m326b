@@ -93,7 +93,7 @@ on boot
 
     # Network Queue Pacing & Congestion Control
     write /proc/sys/net/ipv4/tcp_congestion_control bbr
-    write /proc/sys/net/core/default_qdisc fq_codel
+    write /proc/sys/net/core/default_qdisc fq
     write /proc/sys/net/ipv4/ip_default_ttl 64
 
     # 8GB Dedicated Network & Internet Router Memory Pools (Massive Buffers)
@@ -104,7 +104,7 @@ on boot
     write /proc/sys/net/core/optmem_max 2097152
     write /proc/sys/net/ipv4/tcp_rmem "4096 87380 67108864"
     write /proc/sys/net/ipv4/tcp_wmem "4096 65536 67108864"
-    write /proc/sys/net/core/netdev_max_backlog 32768
+    write /proc/sys/net/core/netdev_max_backlog 65536
     write /proc/sys/net/core/somaxconn 8192
     write /proc/sys/net/ipv4/tcp_max_syn_backlog 8192
     write /proc/sys/net/ipv4/tcp_max_tw_buckets 2000000
@@ -165,12 +165,14 @@ on property:sys.boot_completed=1
 
     # Targeted TCP MSS Clamping to PMTU on WAN interfaces
     exec u:r:magisk:s0 root root -- /system/bin/iptables -t mangle -A POSTROUTING -o rmnet+ -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+    exec u:r:magisk:s0 root root -- /system/bin/iptables -t mangle -A POSTROUTING -o v4-rmnet+ -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
     exec u:r:magisk:s0 root root -- /system/bin/ip6tables -t mangle -A POSTROUTING -o rmnet+ -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
     exec u:r:magisk:s0 root root -- /system/bin/iptables -t mangle -A POSTROUTING -o ccmni+ -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
     exec u:r:magisk:s0 root root -- /system/bin/ip6tables -t mangle -A POSTROUTING -o ccmni+ -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 
     # Dual-Stack TTL & Hop Limit Normalization on WAN (Bypass carrier hotspot caps - NEVER alter ICMPv6!)
     exec u:r:magisk:s0 root root -- /system/bin/iptables -t mangle -A POSTROUTING -o rmnet+ -j TTL --ttl-set 64
+    exec u:r:magisk:s0 root root -- /system/bin/iptables -t mangle -A POSTROUTING -o v4-rmnet+ -j TTL --ttl-set 64
     exec u:r:magisk:s0 root root -- /system/bin/iptables -t mangle -A POSTROUTING -o ccmni+ -j TTL --ttl-set 64
     exec u:r:magisk:s0 root root -- /system/bin/ip6tables -t mangle -A POSTROUTING -o rmnet+ -p tcp -j HL --hl-set 64
     exec u:r:magisk:s0 root root -- /system/bin/ip6tables -t mangle -A POSTROUTING -o rmnet+ -p udp -j HL --hl-set 64
@@ -206,35 +208,51 @@ on property:sys.boot_completed=1
     write /proc/ppm/policy_status "9 1"
 
     # USB RNDIS Zero-Aggregation Immediate Dispatch (Eliminate Gaming Packet Delay)
-    write /sys/module/usb_f_rndis/parameters/rndis_dl_max_pkt_per_xfer 1
-    write /sys/module/usb_f_rndis/parameters/rndis_ul_max_pkt_per_xfer 1
+    write /sys/module/usb_f_rndis/parameters/rndis_dl_max_pkt_per_xfer 10
+    write /sys/module/usb_f_rndis/parameters/rndis_ul_max_pkt_per_xfer 10
 
     # Pin RPS & RFS to Cortex-A76 Big Cores (Cores 6 & 7 = mask c0)
     write /proc/sys/net/core/rps_sock_flow_entries 32768
-    write /sys/class/net/rmnet0/queues/rx-0/rps_cpus c0
+    write /sys/class/net/rmnet0/queues/rx-0/rps_cpus fc
     write /sys/class/net/rmnet0/queues/rx-0/rps_flow_cnt 4096
-    write /sys/class/net/rmnet1/queues/rx-0/rps_cpus c0
+    write /sys/class/net/v4-rmnet0/queues/rx-0/rps_cpus fc
+    write /sys/class/net/v4-rmnet0/queues/rx-0/rps_flow_cnt 4096
+    write /sys/class/net/rmnet1/queues/rx-0/rps_cpus fc
     write /sys/class/net/rmnet1/queues/rx-0/rps_flow_cnt 4096
-    write /sys/class/net/swlan0/queues/rx-0/rps_cpus c0
+    write /sys/class/net/swlan0/queues/rx-0/rps_cpus fc
     write /sys/class/net/swlan0/queues/rx-0/rps_flow_cnt 4096
-    write /sys/class/net/rndis0/queues/rx-0/rps_cpus c0
+    write /sys/class/net/swlan0/queues/rx-1/rps_cpus fc
+    write /sys/class/net/swlan0/queues/rx-1/rps_flow_cnt 4096
+    write /sys/class/net/swlan0/queues/rx-2/rps_cpus fc
+    write /sys/class/net/swlan0/queues/rx-2/rps_flow_cnt 4096
+    write /sys/class/net/swlan0/queues/rx-3/rps_cpus fc
+    write /sys/class/net/swlan0/queues/rx-3/rps_flow_cnt 4096
+    write /sys/class/net/wlan0/queues/rx-0/rps_cpus fc
+    write /sys/class/net/wlan0/queues/rx-0/rps_flow_cnt 4096
+    write /sys/class/net/wlan0/queues/rx-1/rps_cpus fc
+    write /sys/class/net/wlan0/queues/rx-1/rps_flow_cnt 4096
+    write /sys/class/net/wlan0/queues/rx-2/rps_cpus fc
+    write /sys/class/net/wlan0/queues/rx-2/rps_flow_cnt 4096
+    write /sys/class/net/wlan0/queues/rx-3/rps_cpus fc
+    write /sys/class/net/wlan0/queues/rx-3/rps_flow_cnt 4096
+    write /sys/class/net/rndis0/queues/rx-0/rps_cpus fc
     write /sys/class/net/rndis0/queues/rx-0/rps_flow_cnt 4096
-    write /sys/class/net/eth0/queues/rx-0/rps_cpus c0
+    write /sys/class/net/eth0/queues/rx-0/rps_cpus fc
     write /sys/class/net/eth0/queues/rx-0/rps_flow_cnt 4096
-    write /sys/class/net/br0/queues/rx-0/rps_cpus c0
+    write /sys/class/net/br0/queues/rx-0/rps_cpus fc
     write /sys/class/net/br0/queues/rx-0/rps_flow_cnt 4096
 
     # 5G Cellular Modem DPMAIF & USB Hardware IRQ Steering to Cortex-A76 Big Cores
-    write /proc/irq/162/smp_affinity c0
-    write /proc/irq/164/smp_affinity c0
-    write /proc/irq/183/smp_affinity c0
+    write /proc/irq/162/smp_affinity fc
+    write /proc/irq/164/smp_affinity fc
+    write /proc/irq/183/smp_affinity fc
 
     # Wi-Fi CAM & Continuous Performance Mode
     write /proc/net/wlan/setCAM 1
     write /proc/net/wlan/autoPerfCfg ForceEnable:1
 
     # Precision NAT & Softirq Sysctls
-    write /proc/sys/net/ipv4/tcp_timestamps 0
+    write /proc/sys/net/ipv4/tcp_timestamps 1
     write /proc/sys/net/core/netdev_budget 600
     write /proc/sys/net/core/netdev_budget_usecs 4000
     write /proc/sys/net/netfilter/nf_conntrack_max 4194304

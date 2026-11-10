@@ -72,12 +72,12 @@
  *   - MS-Windows drivers sometimes emit undocumented requests.
  */
 
-static unsigned int rndis_dl_max_pkt_per_xfer = 1; /* Instant dispatch - zero aggregation jitter */
+static unsigned int rndis_dl_max_pkt_per_xfer = 10; /* Batch up to 10 bulk packets (Windows 16KB max transfer) */
 module_param(rndis_dl_max_pkt_per_xfer, uint, 0644);
 MODULE_PARM_DESC(rndis_dl_max_pkt_per_xfer,
 	"Maximum packets per transfer for DL aggregation");
 
-static unsigned int rndis_ul_max_pkt_per_xfer = 1; /* Instant dispatch - zero aggregation jitter */
+static unsigned int rndis_ul_max_pkt_per_xfer = 10; /* Batch up to 10 bulk packets */
 module_param(rndis_ul_max_pkt_per_xfer, uint, 0644);
 MODULE_PARM_DESC(rndis_ul_max_pkt_per_xfer,
 	"Maximum packets per transfer for UL aggregation");
