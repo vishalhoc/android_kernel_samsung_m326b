@@ -374,13 +374,24 @@ on property:sys.boot_completed=1
     exec u:r:magisk:s0 root root -- /system/bin/pm disable com.samsung.android.game.gos
     setprop dalvik.vm.dexopt.thermal-cutoff 0
 
-    # Hardware Swiss-Army Knife Permissions: USB HID Keyboard/Mouse & DriveDroid LUNs
+    # Hardware Swiss-Army Knife Permissions: USB HID, Serial, Video & Controllers
     chmod 0666 /dev/hidg0
     chmod 0666 /dev/hidg1
+    chmod 0666 /dev/uinput
+    chmod 0666 /config/usb_gadget/g1/functions/mass_storage.usb0/lun.0/file
+    chmod 0666 /config/usb_gadget/g1/functions/mass_storage.usb0/lun.0/cdrom
+    chmod 0666 /config/usb_gadget/g1/functions/mass_storage.usb0/lun.0/ro
+    chmod 0666 /config/usb_gadget/g1/functions/mass_storage.usb0/lun.0/removable
     chmod 0666 /sys/devices/virtual/android_usb/android0/f_mass_storage/lun/file
     chmod 0666 /sys/devices/virtual/android_usb/android0/f_mass_storage/lun/cdrom
     chmod 0666 /sys/devices/virtual/android_usb/android0/f_mass_storage/lun0/file
     chmod 0666 /sys/devices/virtual/android_usb/android0/f_mass_storage/lun0/cdrom
+
+    # Dynamic Fsync & USB Fast Charging Overdrive
+    chmod 0666 /sys/kernel/dyn_fsync/Dyn_fsync_active
+    write /sys/kernel/dyn_fsync/Dyn_fsync_active 1
+    chmod 0666 /sys/class/power_supply/battery/batt_high_current_usb
+    write /sys/class/power_supply/battery/batt_high_current_usb 1
 
     # Safety: Ensure Slate Mode remains 0666 for switch in app
     chmod 0666 /sys/class/power_supply/battery/batt_slate_mode

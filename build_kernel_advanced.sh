@@ -159,6 +159,57 @@ inject_opt "CONFIG_NETFILTER_XT_MATCH_ADDRTYPE" "y"
 inject_opt "CONFIG_IP_NF_TARGET_REDIRECT" "y"
 
 
+# 14. Universal USB-to-Serial Subsystem (Arduinos, ESP32, 3D Printers, Routers)
+inject_opt "CONFIG_USB_SERIAL" "y"
+inject_opt "CONFIG_USB_SERIAL_CONSOLE" "y"
+inject_opt "CONFIG_USB_SERIAL_GENERIC" "y"
+inject_opt "CONFIG_USB_SERIAL_CH341" "y"
+inject_opt "CONFIG_USB_SERIAL_CP210X" "y"
+inject_opt "CONFIG_USB_SERIAL_FTDI_SIO" "y"
+inject_opt "CONFIG_USB_SERIAL_PL2303" "y"
+inject_opt "CONFIG_USB_ACM" "y"
+
+# 15. Automotive CAN Bus & SocketCAN (OBD-II, Diagnostics & Telematics)
+inject_opt "CONFIG_CAN" "y"
+inject_opt "CONFIG_CAN_RAW" "y"
+inject_opt "CONFIG_CAN_BCM" "y"
+inject_opt "CONFIG_CAN_GW" "y"
+inject_opt "CONFIG_CAN_VCAN" "y"
+inject_opt "CONFIG_CAN_SLCAN" "y"
+inject_opt "CONFIG_CAN_DEV" "y"
+inject_opt "CONFIG_CAN_CALC_BITTIMING" "y"
+inject_opt "CONFIG_CAN_GS_USB" "y"
+
+# 16. USB Video Class (UVC Host - Webcams, Microscopes & HDMI Capture Cards)
+inject_opt "CONFIG_MEDIA_SUPPORT" "y"
+inject_opt "CONFIG_MEDIA_CAMERA_SUPPORT" "y"
+inject_opt "CONFIG_MEDIA_USB_SUPPORT" "y"
+inject_opt "CONFIG_USB_VIDEO_CLASS" "y"
+inject_opt "CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV" "y"
+inject_opt "CONFIG_USB_GSPCA" "y"
+
+# 17. Universal Gamepad & Controller Drivers (Xbox, PlayStation, Nintendo Switch)
+inject_opt "CONFIG_INPUT_JOYSTICK" "y"
+inject_opt "CONFIG_JOYSTICK_XPAD" "y"
+inject_opt "CONFIG_JOYSTICK_XPAD_FF" "y"
+inject_opt "CONFIG_JOYSTICK_XPAD_LEDS" "y"
+inject_opt "CONFIG_HID_SONY" "y"
+inject_opt "CONFIG_SONY_FF" "y"
+inject_opt "CONFIG_HID_NINTENDO" "y"
+inject_opt "CONFIG_INPUT_UINPUT" "y"
+
+# 18. Software Defined Radio & DVB-T (RTL-SDR RF Spectrum Analyzer 24MHz-1.7GHz)
+inject_opt "CONFIG_MEDIA_DIGITAL_TV_SUPPORT" "y"
+inject_opt "CONFIG_DVB_CORE" "y"
+inject_opt "CONFIG_I2C_MUX" "y"
+inject_opt "CONFIG_DVB_USB_V2" "y"
+inject_opt "CONFIG_MEDIA_SDR_SUPPORT" "y"
+inject_opt "CONFIG_MEDIA_SUBDRV_AUTOSELECT" "y"
+inject_opt "CONFIG_DVB_USB_RTL28XXU" "y"
+inject_opt "CONFIG_DVB_RTL2830" "y"
+inject_opt "CONFIG_DVB_RTL2832" "y"
+inject_opt "CONFIG_DVB_RTL2832_SDR" "y"
+
 # 9. Localversion align
 inject_opt "CONFIG_LOCALVERSION" '"-27095505"'
 

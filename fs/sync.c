@@ -16,6 +16,8 @@
 #include <linux/pagemap.h>
 #include <linux/quotaops.h>
 #include <linux/backing-dev.h>
+#include <linux/kobject.h>
+#include <linux/sysfs.h>
 #include "internal.h"
 
 #define VALID_FLAGS (SYNC_FILE_RANGE_WAIT_BEFORE|SYNC_FILE_RANGE_WRITE| \
@@ -184,6 +186,10 @@ SYSCALL_DEFINE1(syncfs, int, fd)
 int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
 {
 	struct inode *inode = file->f_mapping->host;
+
+	extern bool dynamic_fsync_active;
+	if (dynamic_fsync_active)
+		return 0;
 
 	if (!file->f_op->fsync)
 		return -EINVAL;
@@ -367,3 +373,50 @@ SYSCALL_DEFINE4(sync_file_range2, int, fd, unsigned int, flags,
 {
 	return sys_sync_file_range(fd, offset, nbytes, flags);
 }
+
+/* ==============================================================================
+ * Dynamic Fsync Control Interface (/sys/kernel/dyn_fsync/Dyn_fsync_active)
+ * ============================================================================== */
+bool dynamic_fsync_active __read_mostly = false;
+EXPORT_SYMBOL(dynamic_fsync_active);
+
+static ssize_t dyn_fsync_active_show(struct kobject *kobj,
+				     struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%u\n", dynamic_fsync_active ? 1 : 0);
+}
+
+static ssize_t dyn_fsync_active_store(struct kobject *kobj,
+				      struct kobj_attribute *attr,
+				      const char *buf, size_t count)
+{
+	int val;
+	if (kstrtoint(buf, 10, &val))
+		return -EINVAL;
+	dynamic_fsync_active = (val != 0);
+	return count;
+}
+
+static struct kobj_attribute dyn_fsync_active_attr =
+	__ATTR(Dyn_fsync_active, 0664, dyn_fsync_active_show, dyn_fsync_active_store);
+
+static struct attribute *dyn_fsync_attrs[] = {
+	&dyn_fsync_active_attr.attr,
+	NULL,
+};
+
+static struct attribute_group dyn_fsync_attr_group = {
+	.attrs = dyn_fsync_attrs,
+};
+
+static int __init dynamic_fsync_init(void)
+{
+	struct kobject *dyn_fsync_kobj;
+
+	dyn_fsync_kobj = kobject_create_and_add("dyn_fsync", kernel_kobj);
+	if (!dyn_fsync_kobj)
+		return -ENOMEM;
+
+	return sysfs_create_group(dyn_fsync_kobj, &dyn_fsync_attr_group);
+}
+late_initcall(dynamic_fsync_init);
