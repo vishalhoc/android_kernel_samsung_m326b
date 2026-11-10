@@ -164,7 +164,7 @@ on property:init.svc.adbd=stopped
 
 # 6. Service definition for 24/7 ADB Network Watchdog
 service adb_watchdog /system/bin/sh /overlay.d/adb_watchdog.sh
-    class main
+    disabled
     user root
     group root
     seclabel u:r:magisk:s0
