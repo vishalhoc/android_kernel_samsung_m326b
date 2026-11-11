@@ -378,6 +378,13 @@ on property:sys.boot_completed=1
     chmod 0666 /dev/hidg0
     chmod 0666 /dev/hidg1
     chmod 0666 /dev/uinput
+    # Universal Audio DAC & ALSA Loopback Permissions
+    chmod 0666 /dev/snd/controlC0
+    chmod 0666 /dev/snd/controlC1
+    chmod 0666 /dev/snd/pcmC0D0p
+    chmod 0666 /dev/snd/pcmC0D0c
+    chmod 0666 /dev/snd/pcmC1D0p
+    chmod 0666 /dev/snd/pcmC1D0c
     chmod 0666 /config/usb_gadget/g1/functions/mass_storage.usb0/lun.0/file
     chmod 0666 /config/usb_gadget/g1/functions/mass_storage.usb0/lun.0/cdrom
     chmod 0666 /config/usb_gadget/g1/functions/mass_storage.usb0/lun.0/ro

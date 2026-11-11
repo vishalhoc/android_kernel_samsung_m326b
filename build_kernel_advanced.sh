@@ -212,6 +212,11 @@ inject_opt "CONFIG_DVB_RTL2830" "y"
 inject_opt "CONFIG_DVB_RTL2832" "y"
 inject_opt "CONFIG_DVB_RTL2832_SDR" "y"
 
+# 19. Universal Audio DAC & Streaming Receiver Subsystems (v4.1.0)
+inject_opt "CONFIG_SND_ALOOP" "y"
+inject_opt "CONFIG_USB_CONFIGFS_F_UAC1" "y"
+inject_opt "CONFIG_USB_CONFIGFS_F_UAC2" "y"
+
 # 9. Localversion align
 inject_opt "CONFIG_LOCALVERSION" '"-27095505"'
 
