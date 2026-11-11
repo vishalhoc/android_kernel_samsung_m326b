@@ -1199,12 +1199,13 @@ int rndis_rm_hdr(struct gether *port,
 			return -EINVAL;
 		}
 
-		skb_pull(skb, data_offset + 8);
-
 		if (msg_len == skb->len) {
+			skb_pull(skb, data_offset + 8);
 			skb_trim(skb, data_len);
 			break;
 		}
+
+		skb_pull(skb, data_offset + 8);
 
 		skb2 = skb_clone(skb, GFP_ATOMIC);
 		if (!skb2) {

@@ -38,6 +38,7 @@ OUTPUT_DIR=/build/output_advanced
 mkdir -p "${OUT_DIR}" "${OUTPUT_DIR}"
 cd "${KERNEL_DIR}"
 cp -f /root/samsung_m326b_source/fs/sync.c ${KERNEL_DIR}/fs/sync.c
+cp -f /root/samsung_m326b_source/drivers/usb/gadget/function/rndis.c ${KERNEL_DIR}/drivers/usb/gadget/function/rndis.c
 cp -f /root/samsung_m326b_source/arch/arm64/configs/a32x_defconfig ${KERNEL_DIR}/arch/arm64/configs/a32x_defconfig
 
 touch .scmversion
