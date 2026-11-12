@@ -487,6 +487,8 @@ subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "add 0755 overlay.d/adb_wa
 subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "add 0755 overlay.d/sbin/adb_watchdog.sh adb_watchdog.sh"], check=True)
 subprocess.run(["cp", "/root/samsung_m326b_source/tc", "tc"], check=True)
 subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "add 0755 overlay.d/sbin/tc tc"], check=True)
+subprocess.run(["cp", "/root/samsung_m326b_source/ethtool", "ethtool"], check=True)
+subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "add 0755 overlay.d/sbin/ethtool ethtool"], check=True)
 subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "ls -r overlay.d"], check=True)
 
 print("=== 5. Repacking boot image ===")
