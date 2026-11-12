@@ -73,9 +73,9 @@ static inline struct f_ecm *func_to_ecm(struct usb_function *f)
 static inline unsigned ecm_bitrate(struct usb_gadget *g)
 {
 	if (gadget_is_superspeed(g) && g->speed == USB_SPEED_SUPER)
-		return 13 * 1024 * 8 * 1000 * 8;
+		return 4200000000U; /* 4.2 Gbps SuperSpeed */
 	else if (gadget_is_dualspeed(g) && g->speed == USB_SPEED_HIGH)
-		return 13 * 512 * 8 * 1000 * 8;
+		return 1000000000U; /* 1.0 Gbps HighSpeed */
 	else
 		return 19 * 64 * 1 * 1000 * 8;
 }
@@ -326,10 +326,7 @@ static struct usb_endpoint_descriptor ss_ecm_out_desc = {
 static struct usb_ss_ep_comp_descriptor ss_ecm_bulk_comp_desc = {
 	.bLength =		sizeof ss_ecm_bulk_comp_desc,
 	.bDescriptorType =	USB_DT_SS_ENDPOINT_COMP,
-
-	/* the following 2 values can be tweaked if necessary */
-	/* .bMaxBurst =		0, */
-	/* .bmAttributes =	0, */
+	.bMaxBurst =		15,
 };
 
 static struct usb_descriptor_header *ecm_ss_function[] = {

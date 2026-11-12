@@ -72,12 +72,12 @@
  *   - MS-Windows drivers sometimes emit undocumented requests.
  */
 
-static unsigned int rndis_dl_max_pkt_per_xfer = 10; /* Batch up to 10 bulk packets (Windows 16KB max transfer) */
+static unsigned int rndis_dl_max_pkt_per_xfer = 16; /* Batch up to 16 bulk packets */
 module_param(rndis_dl_max_pkt_per_xfer, uint, 0644);
 MODULE_PARM_DESC(rndis_dl_max_pkt_per_xfer,
 	"Maximum packets per transfer for DL aggregation");
 
-static unsigned int rndis_ul_max_pkt_per_xfer = 10; /* Batch up to 10 bulk packets */
+static unsigned int rndis_ul_max_pkt_per_xfer = 16; /* Batch up to 16 bulk packets */
 module_param(rndis_ul_max_pkt_per_xfer, uint, 0644);
 MODULE_PARM_DESC(rndis_ul_max_pkt_per_xfer,
 	"Maximum packets per transfer for UL aggregation");
@@ -115,9 +115,9 @@ static inline struct f_rndis *func_to_rndis(struct usb_function *f)
 static unsigned int bitrate(struct usb_gadget *g)
 {
 	if (gadget_is_superspeed(g) && g->speed == USB_SPEED_SUPER)
-		return 13 * 1024 * 8 * 1000 * 8;
+		return 4200000000U; /* 4.2 Gbps SuperSpeed peak rate */
 	else if (gadget_is_dualspeed(g) && g->speed == USB_SPEED_HIGH)
-		return 13 * 512 * 8 * 1000 * 8;
+		return 1000000000U; /* 1.0 Gbps HighSpeed full potential line rate */
 	else
 		return 19 * 64 * 1 * 1000 * 8;
 }
@@ -348,7 +348,7 @@ static struct usb_ss_ep_comp_descriptor ss_bulk_comp_desc = {
 	/* the following 2 values can be tweaked if necessary */
 	/* .bMaxBurst =		0, */
 	/* .bmAttributes =	0, */
-	.bMaxBurst =		4,
+	.bMaxBurst =		15,
 };
 
 static struct usb_descriptor_header *eth_ss_function[] = {

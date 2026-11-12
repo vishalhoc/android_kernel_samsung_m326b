@@ -106,5 +106,5 @@
 };
 
 &mtu3_0 {
-	maximum-speed = "high-speed";
+	maximum-speed = "super-speed";
 };

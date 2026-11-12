@@ -93,9 +93,9 @@ static inline struct f_ncm *func_to_ncm(struct usb_function *f)
 static inline unsigned ncm_bitrate(struct usb_gadget *g)
 {
 	if (gadget_is_superspeed(g) && g->speed == USB_SPEED_SUPER)
-		return 13 * 1024 * 8 * 1000 * 8;
+		return 4200000000U; /* 4.2 Gbps SuperSpeed */
 	else if (gadget_is_dualspeed(g) && g->speed == USB_SPEED_HIGH)
-		return 13 * 512 * 8 * 1000 * 8;
+		return 1000000000U; /* 1.0 Gbps HighSpeed */
 	else
 		return 19 *  64 * 1 * 1000 * 8;
 }
@@ -108,8 +108,8 @@ static inline unsigned ncm_bitrate(struct usb_gadget *g)
  * If the host can group frames, allow it to do that, 16K is selected,
  * because it's used by default by the current linux host driver
  */
-#define NTB_DEFAULT_IN_SIZE	16384
-#define NTB_OUT_SIZE		16384
+#define NTB_DEFAULT_IN_SIZE	65536
+#define NTB_OUT_SIZE		65536
 
 /* Allocation for storing the NDP, 32 should suffice for a
  * 16k packet. This allows a maximum of 32 * 507 Byte packets to
@@ -381,10 +381,7 @@ static struct usb_endpoint_descriptor ss_ncm_out_desc = {
 static struct usb_ss_ep_comp_descriptor ss_ncm_bulk_comp_desc = {
 	.bLength =		sizeof(ss_ncm_bulk_comp_desc),
 	.bDescriptorType =	USB_DT_SS_ENDPOINT_COMP,
-
-	/* the following 2 values can be tweaked if necessary */
-	/* .bMaxBurst =		0, */
-	/* .bmAttributes =	0, */
+	.bMaxBurst =		15,
 };
 
 static struct usb_descriptor_header *ncm_ss_function[] = {

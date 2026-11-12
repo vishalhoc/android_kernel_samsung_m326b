@@ -146,8 +146,8 @@ ssize_t musb_saving_mode_store(struct device *dev,
 
 bool is_saving_mode(void)
 {
-	pr_info("saving_mode : %d\n", saving_mode);
-	return saving_mode;
+	/* Always return false to prevent hardware endpoint single-buffer throttling */
+	return false;
 }
 
 

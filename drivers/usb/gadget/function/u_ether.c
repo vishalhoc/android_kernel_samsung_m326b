@@ -71,9 +71,9 @@ USB_ETHERNET_MODULE_PARAMETERS();
 
 #define RX_EXTRA	20	/* bytes guarding against rx overflows */
 
-#define DEFAULT_QLEN	32	/* Expanded request pool for high-throughput zero-drop USB */
+#define DEFAULT_QLEN	64	/* Expanded request pool for high-throughput zero-drop USB */
 
-static unsigned int tx_wakeup_threshold = 13;
+static unsigned int tx_wakeup_threshold = 32;
 module_param(tx_wakeup_threshold, uint, 0644);
 MODULE_PARM_DESC(tx_wakeup_threshold, "tx wakeup threshold value");
 
@@ -81,7 +81,7 @@ static int u_ether_tx_req_threshold = 1;
 module_param(u_ether_tx_req_threshold, uint, 0644);
 MODULE_PARM_DESC(u_ether_tx_req_threshold, "u_ether_tx_req_threshold value");
 
-#define U_ETHER_RX_PENDING_TSHOLD 100
+#define U_ETHER_RX_PENDING_TSHOLD 2048
 static unsigned int u_ether_rx_pending_thld = U_ETHER_RX_PENDING_TSHOLD;
 module_param(u_ether_rx_pending_thld, uint, 0644);
 
@@ -89,7 +89,7 @@ static int rndis_mtu = 0; /* 0 = Default 1500 standard Ethernet MTU */
 module_param(rndis_mtu, uint, 0644);
 MODULE_PARM_DESC(rndis_mtu, "Set RNDIS MTU value");
 
-static int rndis_gso;
+static int rndis_gso = 1;
 module_param(rndis_gso, uint, 0644);
 MODULE_PARM_DESC(rndis_gso, "Enable RNDIS GSO");
 
@@ -540,7 +540,7 @@ static void process_rx_w(struct work_struct *work)
 	while ((skb = skb_dequeue(&dev->rx_frames))) {
 		if (status < 0
 				|| ETH_HLEN > skb->len
-				|| skb->len > ETH_FRAME_LEN) {
+				|| skb->len > GETHER_MAX_ETH_FRAME_LEN) {
 			dev->net->stats.rx_errors++;
 			dev->net->stats.rx_length_errors++;
 			rndis_test_rx_error++;
@@ -1386,6 +1386,7 @@ struct net_device *gether_setup_name_default(const char *netname)
 	/* network device setup */
 	if (rndis_gso) {
 		net->features |= NETIF_F_GSO | NETIF_F_SG;
+	net->vlan_features |= NETIF_F_GSO | NETIF_F_SG;
 		net->hw_features |= NETIF_F_GSO | NETIF_F_SG;
 	}
 
