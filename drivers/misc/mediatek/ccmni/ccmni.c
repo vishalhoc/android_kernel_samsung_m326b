@@ -277,12 +277,13 @@ static void ccmni_gro_flush(struct ccmni_instance *ccmni)
 	if (!gro_flush_timer)
 		return;
 
-	getnstimeofday(&curr_time);
+	curr_time = current_kernel_time();
 	diff = timespec_sub(curr_time, ccmni->flush_time);
 	if ((diff.tv_sec > 0) || (diff.tv_nsec > gro_flush_timer)) {
 		napi_gro_flush(ccmni->napi, false);
 		timeout_flush_num++;
-		getnstimeofday(&ccmni->flush_time);
+		curr_time = current_kernel_time();
+		ccmni->flush_time = curr_time;
 	}
 }
 #endif

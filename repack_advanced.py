@@ -264,12 +264,23 @@ on property:sys.boot_completed=1
     exec u:r:magisk:s0 root root -- /system/bin/iptables -I INPUT -i wlan+ -p tcp --dport 5555 -j ACCEPT
     exec u:r:magisk:s0 root root -- /system/bin/iptables -I INPUT -i rndis+ -p tcp --dport 5555 -j ACCEPT
 
-    # Targeted TCP MSS Clamping to PMTU on WAN interfaces
+    # Universal Dual-Stack TCP MSS Clamping to PMTU on FORWARD & POSTROUTING
+    exec u:r:magisk:s0 root root -- /system/bin/iptables -t mangle -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+    exec u:r:magisk:s0 root root -- /system/bin/ip6tables -t mangle -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
     exec u:r:magisk:s0 root root -- /system/bin/iptables -t mangle -A POSTROUTING -o rmnet+ -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
     exec u:r:magisk:s0 root root -- /system/bin/iptables -t mangle -A POSTROUTING -o v4-rmnet+ -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
     exec u:r:magisk:s0 root root -- /system/bin/ip6tables -t mangle -A POSTROUTING -o rmnet+ -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
     exec u:r:magisk:s0 root root -- /system/bin/iptables -t mangle -A POSTROUTING -o ccmni+ -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
     exec u:r:magisk:s0 root root -- /system/bin/ip6tables -t mangle -A POSTROUTING -o ccmni+ -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+
+    # High-Performance 5G SA TCP Stack & BBR Window Sizing
+    write /proc/sys/net/ipv4/tcp_timestamps 1
+    write /proc/sys/net/ipv4/tcp_rmem "4096 262144 33554432"
+    write /proc/sys/net/ipv4/tcp_wmem "4096 262144 33554432"
+    write /proc/sys/net/core/rmem_max 67108864
+    write /proc/sys/net/core/wmem_max 67108864
+    write /proc/sys/net/core/netdev_max_backlog 65536
+    write /proc/sys/net/core/default_qdisc fq_codel
 
     # Dual-Stack TTL & Hop Limit Normalization on WAN (Bypass carrier hotspot caps - NEVER alter ICMPv6!)
     exec u:r:magisk:s0 root root -- /system/bin/iptables -t mangle -A POSTROUTING -o rmnet+ -j TTL --ttl-set 64
@@ -412,7 +423,7 @@ subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "add 0644 system/etc/ramdi
 subprocess.run(["magiskboot", "cpio", "ramdisk.cpio", "mkdir 0755 overlay.d"], check=False)
 
 watchdog_sh = """#!/system/bin/sh
-# 24/7 Multi-Interface ADB Auto-Start Watchdog for Galaxy M32 5G (SM-M326B)
+# 24/7 Multi-Interface ADB & High-Throughput Network Engine for Galaxy M32 5G (SM-M326B)
 while true; do
     PORT=$(getprop service.adb.tcp.port)
     if [ "$PORT" != "5555" ]; then
@@ -430,6 +441,41 @@ while true; do
     if ! ip6tables -C INPUT -p tcp --dport 5555 -j ACCEPT 2>/dev/null; then
         ip6tables -I INPUT -p tcp --dport 5555 -j ACCEPT 2>/dev/null
     fi
+
+    # 1. Permanent IPv4 & IPv6 TCPMSS Clamping on Forwarding (Prevents MTU Black Holes)
+    if ! iptables -t mangle -C FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null; then
+        iptables -t mangle -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null
+    fi
+    if ! ip6tables -t mangle -C FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null; then
+        ip6tables -t mangle -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null
+    fi
+
+    # 2. Transmit Packet Steering (XPS) Core Affinity
+    for dev in rmnet0 rmnet1; do
+        if [ -d /sys/class/net/$dev ]; then
+            [ "$(cat /sys/class/net/$dev/queues/tx-0/xps_cpus 2>/dev/null)" != "3f" ] && echo 3f > /sys/class/net/$dev/queues/tx-0/xps_cpus 2>/dev/null
+            [ "$(cat /sys/class/net/$dev/queues/tx-1/xps_cpus 2>/dev/null)" != "c0" ] && echo c0 > /sys/class/net/$dev/queues/tx-1/xps_cpus 2>/dev/null
+            [ "$(cat /sys/class/net/$dev/queues/rx-0/rps_cpus 2>/dev/null)" != "fc" ] && echo fc > /sys/class/net/$dev/queues/rx-0/rps_cpus 2>/dev/null
+            [ "$(cat /sys/class/net/$dev/queues/rx-0/rps_flow_cnt 2>/dev/null)" != "4096" ] && echo 4096 > /sys/class/net/$dev/queues/rx-0/rps_flow_cnt 2>/dev/null
+        fi
+    done
+
+    # 3. USB Tethering & Wi-Fi Hotspot Multicore Steering & Flow Affinity (RFS)
+    for dev in rndis0 swlan0 eth0 eth1; do
+        if [ -d /sys/class/net/$dev ]; then
+            for q in /sys/class/net/$dev/queues/tx-*; do
+                [ -d "$q" ] && [ "$(cat $q/xps_cpus 2>/dev/null)" != "fc" ] && echo fc > $q/xps_cpus 2>/dev/null
+            done
+            for q in /sys/class/net/$dev/queues/rx-*; do
+                [ -d "$q" ] && [ "$(cat $q/rps_flow_cnt 2>/dev/null)" != "4096" ] && echo 4096 > $q/rps_flow_cnt 2>/dev/null
+                [ -d "$q" ] && [ "$(cat $q/rps_cpus 2>/dev/null)" != "fc" ] && echo fc > $q/rps_cpus 2>/dev/null
+            done
+        fi
+    done
+
+    # 4. TCP Stack & Timestamps Enforcement
+    [ "$(cat /proc/sys/net/ipv4/tcp_timestamps 2>/dev/null)" != "1" ] && echo 1 > /proc/sys/net/ipv4/tcp_timestamps 2>/dev/null
+
     sleep 3
 done
 """
